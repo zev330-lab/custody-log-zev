@@ -1,0 +1,1365 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no, viewport-fit=cover">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="CustodyLog">
+<meta name="theme-color" content="#1a1a2e">
+<meta name="description" content="Private custody incident documentation log">
+<link rel="manifest" href="manifest.json">
+<link rel="apple-touch-icon" href="icon-192.png">
+<title>CustodyLog</title>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap');
+
+  :root {
+    --bg: #0f1117;
+    --surface: #1a1d27;
+    --surface2: #232733;
+    --border: #2d3140;
+    --text: #e8e9ed;
+    --text-muted: #8b8fa3;
+    --accent: #4a9eff;
+    --accent-dim: rgba(74, 158, 255, 0.12);
+    --danger: #ff6b6b;
+    --danger-dim: rgba(255, 107, 107, 0.12);
+    --success: #51cf96;
+    --success-dim: rgba(81, 207, 150, 0.12);
+    --warning: #ffc145;
+    --warning-dim: rgba(255, 193, 69, 0.12);
+    --radius: 12px;
+    --radius-sm: 8px;
+    --safe-top: env(safe-area-inset-top, 0px);
+    --safe-bottom: env(safe-area-inset-bottom, 0px);
+    --safe-left: env(safe-area-inset-left, 0px);
+    --safe-right: env(safe-area-inset-right, 0px);
+  }
+
+  * { margin: 0; padding: 0; box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
+
+  body {
+    font-family: 'DM Sans', -apple-system, BlinkMacSystemFont, sans-serif;
+    background: var(--bg);
+    color: var(--text);
+    min-height: 100vh;
+    min-height: 100dvh;
+    overflow-x: hidden;
+    -webkit-font-smoothing: antialiased;
+  }
+
+  .header {
+    position: sticky; top: 0; z-index: 100;
+    background: rgba(15, 17, 23, 0.85);
+    backdrop-filter: blur(20px);
+    -webkit-backdrop-filter: blur(20px);
+    border-bottom: 1px solid var(--border);
+    padding: calc(16px + var(--safe-top)) calc(20px + var(--safe-right)) 16px calc(20px + var(--safe-left));
+    display: flex; align-items: center; justify-content: space-between;
+  }
+  .header h1 {
+    font-size: 18px; font-weight: 700; letter-spacing: -0.3px;
+    display: flex; align-items: center; gap: 8px;
+  }
+  .header h1 .shield { font-size: 20px; }
+  .header-actions { display: flex; gap: 8px; }
+  .icon-btn {
+    width: 40px; height: 40px; border-radius: var(--radius-sm);
+    border: 1px solid var(--border); background: var(--surface);
+    color: var(--text-muted); display: flex; align-items: center; justify-content: center;
+    cursor: pointer; font-size: 18px; transition: all 0.15s;
+  }
+  .icon-btn:active { transform: scale(0.95); background: var(--surface2); }
+  .icon-btn.danger { border-color: rgba(255,107,107,0.3); color: var(--danger); }
+
+  .tab-bar {
+    display: flex; gap: 4px;
+    padding: 12px calc(20px + var(--safe-right)) 12px calc(20px + var(--safe-left));
+    background: var(--bg);
+    border-bottom: 1px solid var(--border);
+    position: sticky; top: calc(73px + var(--safe-top)); z-index: 99;
+  }
+  .tab {
+    flex: 1; padding: 10px 4px; border-radius: var(--radius-sm);
+    border: none; background: transparent; color: var(--text-muted);
+    font-family: inherit; font-size: 13px; font-weight: 600;
+    cursor: pointer; transition: all 0.15s; text-align: center;
+  }
+  .tab.active { background: var(--accent-dim); color: var(--accent); }
+  .tab:active { transform: scale(0.97); }
+
+  .content {
+    padding: 16px calc(20px + var(--safe-right)) calc(120px + var(--safe-bottom)) calc(20px + var(--safe-left));
+  }
+
+  .section-label {
+    font-size: 11px; font-weight: 700; letter-spacing: 1.2px;
+    text-transform: uppercase; color: var(--text-muted);
+    margin: 20px 0 10px; display: flex; align-items: center; gap: 6px;
+  }
+  .section-label:first-child { margin-top: 4px; }
+
+  .category-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
+  .cat-btn {
+    padding: 12px 10px; border-radius: var(--radius);
+    border: 1px solid var(--border); background: var(--surface);
+    color: var(--text); font-family: inherit; font-size: 13px; font-weight: 500;
+    cursor: pointer; transition: all 0.15s;
+    display: flex; align-items: center; gap: 8px;
+    text-align: left; line-height: 1.3;
+  }
+  .cat-btn .cat-icon { font-size: 18px; flex-shrink: 0; }
+  .cat-btn:active { transform: scale(0.97); }
+  .cat-btn.selected { border-color: var(--accent); background: var(--accent-dim); }
+  .cat-btn.selected-red { border-color: var(--danger); background: var(--danger-dim); }
+  .cat-btn.selected-yellow { border-color: var(--warning); background: var(--warning-dim); }
+
+  .form-group { margin-top: 16px; }
+  .form-label {
+    display: block; font-size: 12px; font-weight: 600;
+    color: var(--text-muted); margin-bottom: 6px;
+    text-transform: uppercase; letter-spacing: 0.8px;
+  }
+  .form-input, .form-textarea, .form-select {
+    width: 100%; padding: 14px 16px; border-radius: var(--radius);
+    border: 1px solid var(--border); background: var(--surface);
+    color: var(--text); font-family: inherit; font-size: 16px;
+    outline: none; transition: border-color 0.15s;
+    -webkit-appearance: none;
+  }
+  .form-input:focus, .form-textarea:focus, .form-select:focus { border-color: var(--accent); }
+  .form-textarea { min-height: 120px; resize: vertical; line-height: 1.5; font-size: 15px; }
+  .form-input::placeholder, .form-textarea::placeholder { color: var(--text-muted); opacity: 0.6; }
+  .form-select { cursor: pointer; }
+
+  .severity-row { display: flex; gap: 8px; margin-top: 6px; }
+  .severity-btn {
+    flex: 1; padding: 10px; border-radius: var(--radius-sm);
+    border: 1px solid var(--border); background: var(--surface);
+    font-family: inherit; font-size: 12px; font-weight: 600;
+    cursor: pointer; text-align: center; transition: all 0.15s;
+    color: var(--text-muted);
+  }
+  .severity-btn:active { transform: scale(0.97); }
+  .severity-btn.sel-low { border-color: var(--success); color: var(--success); background: var(--success-dim); }
+  .severity-btn.sel-med { border-color: var(--warning); color: var(--warning); background: var(--warning-dim); }
+  .severity-btn.sel-high { border-color: var(--danger); color: var(--danger); background: var(--danger-dim); }
+  .severity-btn.sel-critical { border-color: #ff3b3b; color: #ff3b3b; background: rgba(255,59,59,0.15); }
+
+  .checkbox-row {
+    display: flex; align-items: center; gap: 10px;
+    padding: 14px 0; cursor: pointer;
+  }
+  .checkbox-row input[type="checkbox"] { width: 22px; height: 22px; accent-color: var(--accent); cursor: pointer; }
+  .checkbox-row label { font-size: 14px; cursor: pointer; color: var(--text); }
+
+  .primary-btn {
+    width: 100%; padding: 16px; border-radius: var(--radius);
+    border: none; background: var(--accent); color: #fff;
+    font-family: inherit; font-size: 16px; font-weight: 700;
+    cursor: pointer; margin-top: 20px; transition: all 0.15s;
+    letter-spacing: 0.3px;
+  }
+  .primary-btn:active { transform: scale(0.98); opacity: 0.9; }
+  .primary-btn:disabled { opacity: 0.4; cursor: not-allowed; }
+
+  .secondary-btn {
+    width: 100%; padding: 14px; border-radius: var(--radius);
+    border: 1px solid var(--border); background: var(--surface);
+    color: var(--text); font-family: inherit; font-size: 15px; font-weight: 600;
+    cursor: pointer; margin-top: 10px; transition: all 0.15s;
+  }
+  .secondary-btn:active { transform: scale(0.98); }
+
+  .entry-card {
+    background: var(--surface); border: 1px solid var(--border);
+    border-radius: var(--radius); padding: 16px; margin-bottom: 10px;
+    transition: all 0.15s; cursor: pointer;
+  }
+  .entry-card:active { background: var(--surface2); }
+  .entry-header {
+    display: flex; justify-content: space-between; align-items: flex-start;
+    margin-bottom: 8px;
+  }
+  .entry-category {
+    font-size: 12px; font-weight: 700; text-transform: uppercase;
+    letter-spacing: 0.8px; display: flex; align-items: center; gap: 6px;
+  }
+  .entry-severity {
+    font-size: 10px; font-weight: 700; padding: 3px 8px;
+    border-radius: 20px; text-transform: uppercase; letter-spacing: 0.8px;
+  }
+  .sev-low { background: var(--success-dim); color: var(--success); }
+  .sev-medium { background: var(--warning-dim); color: var(--warning); }
+  .sev-high { background: var(--danger-dim); color: var(--danger); }
+  .sev-critical { background: rgba(255,59,59,0.2); color: #ff3b3b; }
+
+  .entry-desc {
+    font-size: 14px; line-height: 1.5; color: var(--text);
+    margin-bottom: 10px; white-space: pre-wrap; word-break: break-word;
+  }
+  .entry-meta {
+    display: flex; flex-wrap: wrap; gap: 12px;
+    font-size: 12px; color: var(--text-muted);
+  }
+  .entry-meta span { display: flex; align-items: center; gap: 4px; }
+  .entry-badges { display: flex; gap: 6px; margin-top: 8px; flex-wrap: wrap; }
+  .badge {
+    font-size: 10px; font-weight: 600; padding: 3px 8px;
+    border-radius: 20px; background: var(--accent-dim); color: var(--accent);
+    text-transform: uppercase; letter-spacing: 0.5px;
+  }
+
+  .empty-state { text-align: center; padding: 60px 20px; color: var(--text-muted); }
+  .empty-state .empty-icon { font-size: 48px; margin-bottom: 16px; opacity: 0.4; }
+  .empty-state h3 { font-size: 16px; margin-bottom: 8px; color: var(--text); }
+  .empty-state p { font-size: 14px; line-height: 1.5; max-width: 280px; margin: 0 auto; }
+
+  .stats-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-bottom: 16px; }
+  .stat-card {
+    background: var(--surface); border: 1px solid var(--border);
+    border-radius: var(--radius); padding: 16px; text-align: center;
+  }
+  .stat-number { font-size: 28px; font-weight: 700; margin-bottom: 4px; }
+  .stat-label { font-size: 11px; color: var(--text-muted); text-transform: uppercase; letter-spacing: 1px; font-weight: 600; }
+
+  .export-card {
+    background: var(--surface); border: 1px solid var(--border);
+    border-radius: var(--radius); padding: 16px; margin-bottom: 10px;
+    cursor: pointer; transition: all 0.15s;
+    display: flex; align-items: center; gap: 14px;
+  }
+  .export-card:active { background: var(--surface2); transform: scale(0.99); }
+  .export-icon { font-size: 28px; }
+  .export-info h3 { font-size: 15px; font-weight: 600; margin-bottom: 2px; }
+  .export-info p { font-size: 13px; color: var(--text-muted); }
+
+  .filter-bar {
+    display: flex; gap: 8px; margin-bottom: 16px; overflow-x: auto;
+    padding-bottom: 4px; -webkit-overflow-scrolling: touch;
+  }
+  .filter-bar::-webkit-scrollbar { display: none; }
+  .filter-chip {
+    flex-shrink: 0; padding: 8px 14px; border-radius: 20px;
+    border: 1px solid var(--border); background: var(--surface);
+    color: var(--text-muted); font-family: inherit; font-size: 12px;
+    font-weight: 600; cursor: pointer; transition: all 0.15s;
+    white-space: nowrap;
+  }
+  .filter-chip.active { border-color: var(--accent); color: var(--accent); background: var(--accent-dim); }
+  .filter-chip:active { transform: scale(0.95); }
+
+  .search-bar { position: relative; margin-bottom: 12px; }
+  .search-bar input {
+    width: 100%; padding: 12px 16px 12px 42px; border-radius: var(--radius);
+    border: 1px solid var(--border); background: var(--surface);
+    color: var(--text); font-family: inherit; font-size: 15px; outline: none;
+  }
+  .search-bar input:focus { border-color: var(--accent); }
+  .search-bar .search-icon {
+    position: absolute; left: 14px; top: 50%; transform: translateY(-50%);
+    color: var(--text-muted); font-size: 16px;
+  }
+
+  .modal-overlay {
+    position: fixed; inset: 0; background: rgba(0,0,0,0.7);
+    z-index: 200; display: flex; align-items: flex-end;
+    justify-content: center; opacity: 0; pointer-events: none;
+    transition: opacity 0.2s;
+  }
+  .modal-overlay.open { opacity: 1; pointer-events: all; }
+  .modal {
+    background: var(--surface); border-radius: 20px 20px 0 0;
+    width: 100%; max-width: 600px; max-height: 85vh; overflow-y: auto;
+    padding: 20px 20px calc(20px + var(--safe-bottom));
+    transform: translateY(100%); transition: transform 0.3s ease;
+    -webkit-overflow-scrolling: touch;
+  }
+  .modal-overlay.open .modal { transform: translateY(0); }
+  .modal-handle {
+    width: 36px; height: 4px; background: var(--border);
+    border-radius: 2px; margin: 0 auto 16px;
+  }
+  .modal h2 { font-size: 18px; margin-bottom: 16px; }
+
+  .delete-btn {
+    padding: 8px 14px; border-radius: var(--radius-sm);
+    border: 1px solid rgba(255,107,107,0.3); background: var(--danger-dim);
+    color: var(--danger); font-family: inherit; font-size: 12px;
+    font-weight: 600; cursor: pointer;
+  }
+  .delete-btn:active { transform: scale(0.95); }
+
+  .toast {
+    position: fixed; bottom: calc(100px + var(--safe-bottom)); left: 50%; transform: translateX(-50%) translateY(20px);
+    background: var(--success); color: #fff; padding: 12px 24px;
+    border-radius: var(--radius); font-size: 14px; font-weight: 600;
+    z-index: 300; opacity: 0; transition: all 0.3s;
+    pointer-events: none; white-space: nowrap;
+  }
+  .toast.show { opacity: 1; transform: translateX(-50%) translateY(0); }
+  .toast.toast-warn { background: var(--warning); color: #1a1a1a; }
+
+  .privacy-banner {
+    background: var(--accent-dim); border: 1px solid rgba(74,158,255,0.2);
+    border-radius: var(--radius); padding: 14px 16px; margin-bottom: 16px;
+    font-size: 13px; line-height: 1.5; color: var(--accent);
+    display: flex; gap: 10px; align-items: flex-start;
+  }
+  .privacy-banner .pi { font-size: 18px; flex-shrink: 0; margin-top: 1px; }
+
+  .draft-badge {
+    font-size: 10px; font-weight: 700; padding: 3px 8px; border-radius: 20px;
+    background: var(--warning-dim); color: var(--warning);
+    text-transform: uppercase; letter-spacing: 0.5px;
+    margin-left: 8px;
+  }
+
+  .photo-grid {
+    display: grid; grid-template-columns: repeat(auto-fill, minmax(76px, 1fr));
+    gap: 8px; margin-top: 8px;
+  }
+  .photo-thumb {
+    aspect-ratio: 1; border-radius: var(--radius-sm);
+    overflow: hidden; position: relative; border: 1px solid var(--border);
+    cursor: pointer;
+  }
+  .photo-thumb img { width: 100%; height: 100%; object-fit: cover; display: block; }
+  .photo-remove {
+    position: absolute; top: 2px; right: 2px;
+    width: 28px; height: 28px; border-radius: 50%;
+    background: rgba(0,0,0,0.75); color: #fff; border: none;
+    font-size: 18px; cursor: pointer; display: flex;
+    align-items: center; justify-content: center; line-height: 1;
+    padding: 8px;
+  }
+  .add-photo-btn {
+    aspect-ratio: 1; border-radius: var(--radius-sm);
+    border: 2px dashed var(--border); background: transparent;
+    color: var(--text-muted); font-size: 24px; cursor: pointer;
+    display: flex; flex-direction: column; align-items: center; justify-content: center;
+    gap: 4px; transition: all 0.15s;
+  }
+  .add-photo-btn span { font-size: 10px; font-weight: 600; }
+  .add-photo-btn:active { background: var(--surface); border-color: var(--accent); }
+
+  .photo-row {
+    display: flex; gap: 6px; margin-top: 8px; overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
+  }
+  .photo-row::-webkit-scrollbar { display: none; }
+  .photo-row img {
+    width: 44px; height: 44px; border-radius: 6px; object-fit: cover;
+    border: 1px solid var(--border); flex-shrink: 0;
+  }
+  .photo-row .more-photos {
+    display: flex; align-items: center; font-size: 11px;
+    color: var(--text-muted); padding: 0 6px; flex-shrink: 0; white-space: nowrap;
+  }
+
+  .photo-viewer {
+    position: fixed; inset: 0; background: rgba(0,0,0,0.95);
+    z-index: 400; display: flex; align-items: center; justify-content: center;
+    padding: 20px; cursor: pointer;
+  }
+  .photo-viewer img {
+    max-width: 100%; max-height: 100%; object-fit: contain; border-radius: 8px;
+  }
+
+  .storage-bar {
+    height: 6px; border-radius: 3px; background: var(--surface2);
+    overflow: hidden; margin-top: 8px;
+  }
+  .storage-bar-fill {
+    height: 100%; border-radius: 3px; background: var(--accent);
+    transition: width 0.3s;
+  }
+
+  @media (min-width: 500px) {
+    .category-grid { grid-template-columns: 1fr 1fr 1fr; }
+  }
+  @media (min-width: 640px) {
+    .content { max-width: 640px; margin: 0 auto; }
+    .header { max-width: 100%; }
+    .header > * { max-width: 640px; }
+    .tab-bar { max-width: 640px; margin: 0 auto; }
+    .stats-grid { grid-template-columns: repeat(3, 1fr); }
+  }
+  @media (min-width: 1024px) {
+    .content { max-width: 720px; }
+    .tab-bar { max-width: 720px; }
+    .photo-grid { grid-template-columns: repeat(auto-fill, minmax(90px, 1fr)); }
+  }
+
+  @keyframes slideUp {
+    from { opacity: 0; transform: translateY(10px); }
+    to { opacity: 1; transform: translateY(0); }
+  }
+  .entry-card { animation: slideUp 0.25s ease; }
+
+  input[type="date"], input[type="time"] { color-scheme: dark; }
+
+  .disclaimer {
+    margin-top: 24px; padding: 16px; background: var(--surface);
+    border: 1px solid var(--border); border-radius: var(--radius);
+    font-size: 12px; color: var(--text-muted); line-height: 1.6;
+  }
+  .disclaimer strong { color: var(--warning); }
+</style>
+</head>
+<body>
+
+<div id="app"></div>
+<div class="toast" id="toast"></div>
+
+<script>
+const USER_NAME = 'Zev';
+const SP = 'cl_zev';
+
+const CATEGORIES = [
+  { id: 'emotional', icon: '\u{1F534}', label: 'Emotional Outburst', group: 'behavior' },
+  { id: 'threat', icon: '\u26A0\uFE0F', label: 'Threats / Intimidation', group: 'behavior' },
+  { id: 'custody_exchange', icon: '\u{1F504}', label: 'Custody Exchange Issue', group: 'custody' },
+  { id: 'court_violation', icon: '\u2696\uFE0F', label: 'Court Order Violation', group: 'custody' },
+  { id: 'communication', icon: '\u{1F4AC}', label: 'Hostile Communication', group: 'communication' },
+  { id: 'false_accusation', icon: '\u{1F6A8}', label: 'False Accusation', group: 'communication' },
+  { id: 'boundary', icon: '\u{1F6A7}', label: 'Boundary Violation', group: 'communication' },
+  { id: 'alienation', icon: '\u{1F494}', label: 'Alienation Behavior', group: 'children' },
+  { id: 'child_wellbeing', icon: '\u{1F476}', label: "Children's Wellbeing", group: 'children' },
+  { id: 'neglect', icon: '\u{1F3E0}', label: 'Neglect / Safety Concern', group: 'children' },
+  { id: 'substance', icon: '\u{1F377}', label: 'Substance Abuse', group: 'concern' },
+  { id: 'financial', icon: '\u{1F4B0}', label: 'Financial Issue', group: 'concern' },
+  { id: 'harassment', icon: '\u{1F4F5}', label: 'Harassment / Stalking', group: 'concern' },
+  { id: 'witness', icon: '\u{1F441}\uFE0F', label: 'Witness Observation', group: 'evidence' },
+  { id: 'positive', icon: '\u2705', label: 'Positive Interaction', group: 'evidence' },
+  { id: 'other', icon: '\u{1F4DD}', label: 'Other / General Note', group: 'evidence' },
+];
+
+const SEVERITY_LEVELS = [
+  { id: 'low', label: 'Low', cls: 'sel-low' },
+  { id: 'medium', label: 'Medium', cls: 'sel-med' },
+  { id: 'high', label: 'High', cls: 'sel-high' },
+  { id: 'critical', label: 'Critical', cls: 'sel-critical' },
+];
+
+const GROUP_LABELS = {
+  behavior: '\u{1F534} Behavior & Safety',
+  custody: '\u2696\uFE0F Custody & Court',
+  communication: '\u{1F4AC} Communication',
+  children: '\u{1F476} Children',
+  concern: '\u26A0\uFE0F Concerns',
+  evidence: '\u{1F4CB} Documentation',
+};
+
+// Storage
+function loadEntries() {
+  try { return JSON.parse(localStorage.getItem(SP + '_entries') || '[]'); }
+  catch { return []; }
+}
+function saveEntries(entries) {
+  try {
+    localStorage.setItem(SP + '_entries', JSON.stringify(entries));
+  } catch (e) {
+    if (e.name === 'QuotaExceededError') {
+      showToast('\u26A0\uFE0F Storage full! Export & clear old entries.', true);
+    }
+  }
+}
+function loadPIN() { return localStorage.getItem(SP + '_pin'); }
+function savePIN(pin) { localStorage.setItem(SP + '_pin', pin); }
+function isUnlocked() { return sessionStorage.getItem(SP + '_unlocked') === 'true'; }
+function setUnlocked() { sessionStorage.setItem(SP + '_unlocked', 'true'); }
+
+// Draft auto-save
+function saveDraft() {
+  try {
+    localStorage.setItem(SP + '_draft', JSON.stringify({
+      category: state.category, severity: state.severity,
+      description: state.description, date: state.date, time: state.time,
+      witnesses: state.witnesses, childrenPresent: state.childrenPresent,
+      childrenNames: state.childrenNames, locationNote: state.locationNote,
+      photos: state.photos,
+    }));
+  } catch {}
+}
+function loadDraft() {
+  try {
+    const d = JSON.parse(localStorage.getItem(SP + '_draft'));
+    if (d) {
+      state.category = d.category || '';
+      state.severity = d.severity || 'medium';
+      state.description = d.description || '';
+      state.date = d.date || '';
+      state.time = d.time || '';
+      state.witnesses = d.witnesses || '';
+      state.childrenPresent = d.childrenPresent || false;
+      state.childrenNames = d.childrenNames || '';
+      state.locationNote = d.locationNote || '';
+      state.photos = d.photos || [];
+    }
+  } catch {}
+}
+function clearDraft() { localStorage.removeItem(SP + '_draft'); }
+function hasDraft() {
+  try {
+    const d = JSON.parse(localStorage.getItem(SP + '_draft'));
+    return d && (d.category || d.description);
+  } catch { return false; }
+}
+
+// Toast
+function showToast(msg, warn) {
+  const t = document.getElementById('toast');
+  t.textContent = msg;
+  t.className = 'toast show' + (warn ? ' toast-warn' : '');
+  setTimeout(() => t.className = 'toast', 2500);
+}
+
+// Photo compression
+function compressImage(file) {
+  return new Promise((resolve) => {
+    const reader = new FileReader();
+    reader.onload = (ev) => {
+      const img = new Image();
+      img.onload = () => {
+        const canvas = document.createElement('canvas');
+        const MAX = 800;
+        let w = img.width, h = img.height;
+        if (w > MAX || h > MAX) {
+          if (w > h) { h = Math.round(h * MAX / w); w = MAX; }
+          else { w = Math.round(w * MAX / h); h = MAX; }
+        }
+        canvas.width = w; canvas.height = h;
+        canvas.getContext('2d').drawImage(img, 0, 0, w, h);
+        resolve(canvas.toDataURL('image/jpeg', 0.6));
+      };
+      img.src = ev.target.result;
+    };
+    reader.readAsDataURL(file);
+  });
+}
+
+// Storage usage
+function getStorageUsage() {
+  let total = 0;
+  for (let i = 0; i < localStorage.length; i++) {
+    const key = localStorage.key(i);
+    if (key && key.startsWith(SP)) {
+      total += (localStorage.getItem(key) || '').length * 2;
+    }
+  }
+  return total;
+}
+function formatBytes(b) {
+  if (b < 1024) return b + ' B';
+  if (b < 1048576) return (b / 1024).toFixed(1) + ' KB';
+  return (b / 1048576).toFixed(1) + ' MB';
+}
+
+// State
+let state = {
+  tab: 'new',
+  entries: loadEntries(),
+  filter: 'all',
+  search: '',
+  category: '', severity: 'medium', description: '',
+  date: '', time: '', witnesses: '',
+  childrenPresent: false, childrenNames: '', locationNote: '',
+  photos: [],
+  editingId: null,
+  viewingEntry: null,
+  pinSet: !!loadPIN(),
+  locked: !!loadPIN() && !isUnlocked(),
+  pinInput: '', pinStep: 'enter', pinFirst: '',
+};
+
+function getNow() {
+  const d = new Date();
+  return { date: d.toISOString().split('T')[0], time: d.toTimeString().slice(0,5) };
+}
+
+// Render
+function render() {
+  const app = document.getElementById('app');
+  if (state.locked) { app.innerHTML = renderPINScreen(); return; }
+  if (!state.pinSet && state.pinStep === 'set') { app.innerHTML = renderPINSetup(); return; }
+  app.innerHTML = `
+    ${renderHeader()}
+    ${renderTabs()}
+    <div class="content">
+      ${state.tab === 'new' ? renderNewEntry() : ''}
+      ${state.tab === 'log' ? renderLog() : ''}
+      ${state.tab === 'export' ? renderExport() : ''}
+    </div>
+    ${state.viewingEntry ? renderEntryModal() : ''}
+  `;
+}
+
+function renderPINScreen() {
+  return `
+    <div style="display:flex;flex-direction:column;align-items:center;justify-content:center;min-height:100vh;min-height:100dvh;padding:calc(40px + var(--safe-top)) 20px calc(40px + var(--safe-bottom));text-align:center;">
+      <div style="font-size:48px;margin-bottom:20px;">\u{1F512}</div>
+      <h2 style="font-size:20px;margin-bottom:8px;">${USER_NAME}'s CustodyLog</h2>
+      <p style="color:var(--text-muted);font-size:14px;margin-bottom:30px;">Enter your PIN to access</p>
+      <input type="password" inputmode="numeric" maxlength="6" placeholder="Enter PIN"
+        class="form-input" style="max-width:200px;text-align:center;font-size:24px;letter-spacing:8px;"
+        value="${state.pinInput}" oninput="handlePINInput(this.value)" autofocus>
+      <button class="primary-btn" style="max-width:200px;margin-top:16px;" onclick="checkPIN()">Unlock</button>
+      <button class="secondary-btn" style="max-width:200px;border:none;color:var(--text-muted);font-size:13px;" onclick="resetPIN()">Reset PIN & Data</button>
+    </div>`;
+}
+
+function renderPINSetup() {
+  const isConfirm = state.pinStep === 'confirm';
+  return `
+    <div style="display:flex;flex-direction:column;align-items:center;justify-content:center;min-height:100vh;min-height:100dvh;padding:calc(40px + var(--safe-top)) 20px calc(40px + var(--safe-bottom));text-align:center;">
+      <div style="font-size:48px;margin-bottom:20px;">\u{1F6E1}\uFE0F</div>
+      <h2 style="font-size:20px;margin-bottom:8px;">${isConfirm ? 'Confirm Your PIN' : 'Set a PIN'}</h2>
+      <p style="color:var(--text-muted);font-size:14px;margin-bottom:30px;max-width:280px;">
+        ${isConfirm ? 'Enter it again to confirm' : 'Protect your entries with a PIN code. This keeps your data private.'}
+      </p>
+      <input type="password" inputmode="numeric" maxlength="6" placeholder="${isConfirm ? 'Confirm PIN' : 'Choose PIN'}"
+        class="form-input" style="max-width:200px;text-align:center;font-size:24px;letter-spacing:8px;"
+        value="${state.pinInput}" oninput="handlePINInput(this.value)" autofocus>
+      <button class="primary-btn" style="max-width:200px;margin-top:16px;" onclick="setPIN()">${isConfirm ? 'Confirm' : 'Next'}</button>
+      <button class="secondary-btn" style="max-width:200px;border:none;color:var(--text-muted);font-size:13px;" onclick="skipPIN()">Skip for now</button>
+    </div>`;
+}
+
+function renderHeader() {
+  return `<div class="header">
+    <h1><span class="shield">\u{1F6E1}\uFE0F</span> ${USER_NAME}'s CustodyLog</h1>
+    <div class="header-actions">
+      <button class="icon-btn" onclick="togglePINSetup()" title="PIN Lock">\u{1F512}</button>
+    </div>
+  </div>`;
+}
+
+function renderTabs() {
+  const draft = hasDraft() && !state.editingId;
+  const tabs = [
+    { id: 'new', label: draft ? '+ New Entry \u{1F4DD}' : '+ New Entry' },
+    { id: 'log', label: 'Log (' + state.entries.length + ')' },
+    { id: 'export', label: 'Export' },
+  ];
+  return `<div class="tab-bar">
+    ${tabs.map(t => `<button class="tab ${state.tab === t.id ? 'active' : ''}" onclick="setTab('${t.id}')">${t.label}</button>`).join('')}
+  </div>`;
+}
+
+function renderNewEntry() {
+  const groups = {};
+  CATEGORIES.forEach(c => {
+    if (!groups[c.group]) groups[c.group] = [];
+    groups[c.group].push(c);
+  });
+
+  let catHTML = '';
+  for (const [group, cats] of Object.entries(groups)) {
+    catHTML += `<div class="section-label">${GROUP_LABELS[group]}</div>
+    <div class="category-grid">
+      ${cats.map(c => {
+        const sel = state.category === c.id;
+        const cls = sel ? (c.group === 'behavior' ? 'selected-red' : c.group === 'concern' ? 'selected-yellow' : 'selected') : '';
+        return `<button class="cat-btn ${cls}" onclick="selectCategory('${c.id}')">
+          <span class="cat-icon">${c.icon}</span> ${c.label}
+        </button>`;
+      }).join('')}
+    </div>`;
+  }
+
+  const n = getNow();
+
+  return `
+    ${!state.pinSet ? `<div class="privacy-banner">
+      <span class="pi">\u{1F512}</span>
+      <span>Your data is stored only on this device. Tap the lock icon above to set a PIN for extra privacy.</span>
+    </div>` : ''}
+
+    ${state.editingId ? `<div style="background:var(--warning-dim);border:1px solid rgba(255,193,69,0.3);border-radius:var(--radius);padding:12px 16px;margin-bottom:16px;font-size:13px;color:var(--warning);display:flex;align-items:center;gap:8px;">
+      \u270F\uFE0F Editing existing entry
+    </div>` : ''}
+
+    <div class="section-label" style="margin-top:4px;">\u{1F4C2} What happened?</div>
+    ${catHTML}
+
+    ${state.category ? `
+      <div class="form-group">
+        <label class="form-label">Severity Level</label>
+        <div class="severity-row">
+          ${SEVERITY_LEVELS.map(s =>
+            `<button class="severity-btn ${state.severity === s.id ? s.cls : ''}" onclick="setSeverity('${s.id}')">${s.label}</button>`
+          ).join('')}
+        </div>
+      </div>
+
+      <div class="form-group">
+        <label class="form-label">Date & Time of Incident</label>
+        <div style="display:flex;gap:8px;">
+          <input type="date" class="form-input" style="flex:1.2;" value="${state.date || n.date}" onchange="state.date=this.value;saveDraft()">
+          <input type="time" class="form-input" style="flex:0.8;" value="${state.time || n.time}" onchange="state.time=this.value;saveDraft()">
+        </div>
+      </div>
+
+      <div class="form-group">
+        <label class="form-label">What happened? (Be specific & factual)</label>
+        <textarea class="form-textarea" placeholder="Describe what happened, exactly what was said or done, in factual terms. Stick to observable facts \u2014 what you saw, heard, or received."
+          oninput="state.description=this.value;saveDraft()">${state.description}</textarea>
+      </div>
+
+      <div class="form-group">
+        <label class="form-label">Location (optional)</label>
+        <input type="text" class="form-input" placeholder="Where did this happen?"
+          value="${esc(state.locationNote)}" oninput="state.locationNote=this.value;saveDraft()">
+      </div>
+
+      <div class="form-group">
+        <label class="form-label">Witnesses (optional)</label>
+        <input type="text" class="form-input" placeholder="Names of anyone who saw/heard this"
+          value="${esc(state.witnesses)}" oninput="state.witnesses=this.value;saveDraft()">
+      </div>
+
+      <div class="checkbox-row" onclick="toggleChildren()">
+        <input type="checkbox" ${state.childrenPresent ? 'checked' : ''} tabindex="-1">
+        <label>Children were present / involved</label>
+      </div>
+      ${state.childrenPresent ? `
+        <div class="form-group" style="margin-top:0;">
+          <input type="text" class="form-input" placeholder="Which children? (names/ages)"
+            value="${esc(state.childrenNames)}" oninput="state.childrenNames=this.value;saveDraft()">
+        </div>
+      ` : ''}
+
+      <div class="form-group">
+        <label class="form-label">\u{1F4F7} Photos / Evidence (optional)</label>
+        <div class="photo-grid">
+          ${state.photos.map((p, i) => `
+            <div class="photo-thumb">
+              <img src="${p}" alt="Photo ${i+1}">
+              <button class="photo-remove" onclick="event.stopPropagation();removePhoto(${i})">\u00D7</button>
+            </div>
+          `).join('')}
+          <button class="add-photo-btn" onclick="addPhotos()">
+            \u{1F4F7}<span>Add</span>
+          </button>
+        </div>
+      </div>
+
+      <button class="primary-btn" onclick="saveEntry()" ${!state.description.trim() ? 'disabled' : ''}>
+        ${state.editingId ? '\u{1F4BE} Update Entry' : '\u{1F4BE} Save Entry'}
+      </button>
+      ${state.editingId ? `<button class="secondary-btn" onclick="cancelEdit()">Cancel Edit</button>` : ''}
+      ${!state.editingId && (state.description || state.photos.length) ? `<button class="secondary-btn" style="color:var(--danger);border-color:rgba(255,107,107,0.3);" onclick="clearForm()">Clear Form</button>` : ''}
+    ` : ''}
+  `;
+}
+
+function renderLog() {
+  let filtered = [...state.entries].sort((a,b) => new Date(b.date + 'T' + b.time) - new Date(a.date + 'T' + a.time));
+
+  if (state.search) {
+    const s = state.search.toLowerCase();
+    filtered = filtered.filter(e =>
+      e.description.toLowerCase().includes(s) ||
+      (e.witnesses||'').toLowerCase().includes(s) ||
+      (e.locationNote||'').toLowerCase().includes(s) ||
+      getCatLabel(e.category).toLowerCase().includes(s)
+    );
+  }
+  if (state.filter !== 'all') {
+    filtered = filtered.filter(e => e.category === state.filter);
+  }
+
+  const usedCats = [...new Set(state.entries.map(e => e.category))];
+
+  return `
+    <div class="search-bar">
+      <span class="search-icon">\u{1F50D}</span>
+      <input type="text" placeholder="Search entries..." value="${esc(state.search)}"
+        oninput="state.search=this.value;render();">
+    </div>
+    <div class="filter-bar">
+      <button class="filter-chip ${state.filter==='all'?'active':''}" onclick="setFilter('all')">All (${state.entries.length})</button>
+      ${usedCats.map(cid => {
+        const cat = CATEGORIES.find(c=>c.id===cid);
+        const count = state.entries.filter(e=>e.category===cid).length;
+        return `<button class="filter-chip ${state.filter===cid?'active':''}" onclick="setFilter('${cid}')">${cat?cat.icon:''} ${cat?cat.label:cid} (${count})</button>`;
+      }).join('')}
+    </div>
+    ${filtered.length === 0 ? `
+      <div class="empty-state">
+        <div class="empty-icon">\u{1F4CB}</div>
+        <h3>${state.entries.length === 0 ? 'No entries yet' : 'No matching entries'}</h3>
+        <p>${state.entries.length === 0 ? 'Tap "+ New Entry" to log your first incident' : 'Try adjusting your search or filter'}</p>
+      </div>
+    ` : filtered.map(e => renderEntryCard(e)).join('')}
+  `;
+}
+
+function renderEntryCard(e) {
+  const cat = CATEGORIES.find(c => c.id === e.category);
+  const hasPhotos = e.photos && e.photos.length > 0;
+  return `<div class="entry-card" onclick="viewEntry('${e.id}')">
+    <div class="entry-header">
+      <div class="entry-category" style="color:${e.severity==='critical'||e.severity==='high'?'var(--danger)':e.severity==='medium'?'var(--warning)':'var(--success)'}">
+        ${cat ? cat.icon : '\u{1F4DD}'} ${cat ? cat.label : e.category}
+      </div>
+      <span class="entry-severity sev-${e.severity}">${e.severity}</span>
+    </div>
+    <div class="entry-desc">${esc(truncate(e.description, 150))}</div>
+    <div class="entry-meta">
+      <span>\u{1F4C5} ${formatDate(e.date)}</span>
+      <span>\u{1F550} ${formatTime(e.time)}</span>
+      ${e.locationNote ? `<span>\u{1F4CD} ${esc(truncate(e.locationNote, 25))}</span>` : ''}
+    </div>
+    ${(e.childrenPresent || e.witnesses || hasPhotos) ? `<div class="entry-badges">
+      ${e.childrenPresent ? `<span class="badge" style="background:var(--danger-dim);color:var(--danger);">Children Present</span>` : ''}
+      ${e.witnesses ? `<span class="badge">Has Witnesses</span>` : ''}
+      ${hasPhotos ? `<span class="badge">\u{1F4F7} ${e.photos.length} Photo${e.photos.length>1?'s':''}</span>` : ''}
+    </div>` : ''}
+    ${hasPhotos ? `<div class="photo-row">
+      ${e.photos.slice(0,4).map(p => `<img src="${p}" alt="Evidence">`).join('')}
+      ${e.photos.length > 4 ? `<span class="more-photos">+${e.photos.length-4} more</span>` : ''}
+    </div>` : ''}
+  </div>`;
+}
+
+function renderEntryModal() {
+  const e = state.viewingEntry;
+  if (!e) return '';
+  const cat = CATEGORIES.find(c => c.id === e.category);
+  const hasPhotos = e.photos && e.photos.length > 0;
+  return `<div class="modal-overlay open" onclick="closeModal(event)">
+    <div class="modal">
+      <div class="modal-handle"></div>
+      <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:16px;">
+        <h2>${cat ? cat.icon : '\u{1F4DD}'} ${cat ? cat.label : e.category}</h2>
+        <span class="entry-severity sev-${e.severity}" style="font-size:11px;">${e.severity}</span>
+      </div>
+      <div style="margin-bottom:16px;">
+        <div class="form-label">Date & Time</div>
+        <div style="font-size:15px;">${formatDate(e.date)} at ${formatTime(e.time)}</div>
+      </div>
+      ${e.locationNote ? `<div style="margin-bottom:16px;">
+        <div class="form-label">Location</div>
+        <div style="font-size:15px;">${esc(e.locationNote)}</div>
+      </div>` : ''}
+      <div style="margin-bottom:16px;">
+        <div class="form-label">Description</div>
+        <div style="font-size:15px;line-height:1.6;white-space:pre-wrap;">${esc(e.description)}</div>
+      </div>
+      ${e.witnesses ? `<div style="margin-bottom:16px;">
+        <div class="form-label">Witnesses</div>
+        <div style="font-size:15px;">${esc(e.witnesses)}</div>
+      </div>` : ''}
+      ${e.childrenPresent ? `<div style="margin-bottom:16px;">
+        <div class="form-label">Children Present</div>
+        <div style="font-size:15px;">Yes${e.childrenNames ? ' \u2014 ' + esc(e.childrenNames) : ''}</div>
+      </div>` : ''}
+      ${hasPhotos ? `<div style="margin-bottom:16px;">
+        <div class="form-label">Evidence Photos (${e.photos.length})</div>
+        <div class="photo-grid">
+          ${e.photos.map((p, i) => `
+            <div class="photo-thumb" onclick="event.stopPropagation();openPhotoViewer('${e.id}',${i})">
+              <img src="${p}" alt="Photo ${i+1}">
+            </div>
+          `).join('')}
+        </div>
+      </div>` : ''}
+      <div style="margin-bottom:16px;">
+        <div class="form-label">Entry ID</div>
+        <div style="font-size:12px;font-family:'JetBrains Mono',monospace;color:var(--text-muted);">${e.id}</div>
+      </div>
+      <div style="margin-bottom:8px;">
+        <div class="form-label">Logged</div>
+        <div style="font-size:13px;color:var(--text-muted);">${new Date(e.createdAt).toLocaleString()}</div>
+      </div>
+      <div style="display:flex;gap:8px;margin-top:20px;">
+        <button class="secondary-btn" style="flex:1;margin:0;" onclick="editEntry('${e.id}')">\u270F\uFE0F Edit</button>
+        <button class="delete-btn" style="flex:0.6;padding:14px;" onclick="deleteEntry('${e.id}')">\u{1F5D1}\uFE0F Delete</button>
+      </div>
+    </div>
+  </div>`;
+}
+
+function renderExport() {
+  const total = state.entries.length;
+  const sevCounts = { critical: 0, high: 0, medium: 0, low: 0 };
+  state.entries.forEach(e => sevCounts[e.severity]++);
+  const usage = getStorageUsage();
+  const maxStorage = 5 * 1024 * 1024;
+  const pct = Math.min(100, Math.round(usage / maxStorage * 100));
+
+  return `
+    <div class="stats-grid">
+      <div class="stat-card">
+        <div class="stat-number">${total}</div>
+        <div class="stat-label">Total Entries</div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-number" style="color:var(--danger)">${sevCounts.critical + sevCounts.high}</div>
+        <div class="stat-label">High / Critical</div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-number">${new Set(state.entries.map(e=>e.category)).size}</div>
+        <div class="stat-label">Categories</div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-number">${state.entries.filter(e=>e.childrenPresent).length}</div>
+        <div class="stat-label">Kids Present</div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-number">${state.entries.reduce((n,e)=>(e.photos?e.photos.length:0)+n,0)}</div>
+        <div class="stat-label">Photos</div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-number" style="font-size:20px;${pct>80?'color:var(--danger)':''}">${formatBytes(usage)}</div>
+        <div class="stat-label">Storage Used</div>
+        <div class="storage-bar"><div class="storage-bar-fill" style="width:${pct}%;${pct>80?'background:var(--danger)':''}"></div></div>
+      </div>
+    </div>
+
+    <div class="section-label">\u{1F4E4} Export Options</div>
+
+    <div class="export-card" onclick="exportFormatted()">
+      <div class="export-icon">\u{1F4C4}</div>
+      <div class="export-info">
+        <h3>Attorney-Ready Report</h3>
+        <p>Formatted HTML document with all entries and photos. Print or save as PDF.</p>
+      </div>
+    </div>
+
+    <div class="export-card" onclick="exportCSV()">
+      <div class="export-icon">\u{1F4CA}</div>
+      <div class="export-info">
+        <h3>Spreadsheet (CSV)</h3>
+        <p>All data in CSV format for Excel or Google Sheets analysis.</p>
+      </div>
+    </div>
+
+    <div class="export-card" onclick="exportJSON()">
+      <div class="export-icon">\u{1F4BE}</div>
+      <div class="export-info">
+        <h3>Full Backup (JSON)</h3>
+        <p>Complete data backup including photos. Can be used to restore entries.</p>
+      </div>
+    </div>
+
+    <div class="export-card" onclick="importJSON()">
+      <div class="export-icon">\u{1F4E5}</div>
+      <div class="export-info">
+        <h3>Restore from Backup</h3>
+        <p>Import a previously exported JSON backup file.</p>
+      </div>
+    </div>
+
+    <div class="disclaimer">
+      <strong>\u26A0\uFE0F Important:</strong> This app stores data locally on your device only. No data is sent to any server.
+      <strong>Always export and back up your data regularly.</strong> Clearing your browser data or uninstalling will delete all entries.
+      This app is not a substitute for legal advice. Consult with your attorney about what to document and how.
+    </div>
+  `;
+}
+
+// Actions
+function setTab(t) { state.tab = t; render(); }
+function setFilter(f) { state.filter = f; render(); }
+function selectCategory(id) {
+  state.category = state.category === id ? '' : id;
+  saveDraft(); render();
+}
+function setSeverity(s) { state.severity = s; saveDraft(); render(); }
+function toggleChildren() { state.childrenPresent = !state.childrenPresent; saveDraft(); render(); }
+
+function addPhotos() {
+  const input = document.createElement('input');
+  input.type = 'file';
+  input.accept = 'image/*';
+  input.multiple = true;
+  input.onchange = async (e) => {
+    for (const file of e.target.files) {
+      try {
+        const compressed = await compressImage(file);
+        state.photos.push(compressed);
+      } catch {}
+    }
+    saveDraft();
+    render();
+    showToast('\u{1F4F7} ' + e.target.files.length + ' photo(s) added');
+  };
+  input.click();
+}
+
+function removePhoto(idx) {
+  state.photos.splice(idx, 1);
+  saveDraft(); render();
+}
+
+function openPhotoViewer(entryId, idx) {
+  const entry = state.entries.find(x => x.id === entryId);
+  if (!entry || !entry.photos || !entry.photos[idx]) return;
+  const overlay = document.createElement('div');
+  overlay.className = 'photo-viewer';
+  overlay.onclick = () => overlay.remove();
+  const img = document.createElement('img');
+  img.src = entry.photos[idx];
+  img.alt = 'Evidence photo';
+  overlay.appendChild(img);
+  document.body.appendChild(overlay);
+}
+
+function saveEntry() {
+  if (!state.description.trim() || !state.category) return;
+  const isEdit = !!state.editingId;
+  const n = getNow();
+  const entry = {
+    id: state.editingId || genId(),
+    category: state.category,
+    severity: state.severity,
+    description: state.description.trim(),
+    date: state.date || n.date,
+    time: state.time || n.time,
+    witnesses: state.witnesses.trim(),
+    childrenPresent: state.childrenPresent,
+    childrenNames: state.childrenNames.trim(),
+    locationNote: state.locationNote.trim(),
+    photos: [...state.photos],
+    createdAt: isEdit ?
+      (state.entries.find(e=>e.id===state.editingId)||{}).createdAt || new Date().toISOString() :
+      new Date().toISOString(),
+    updatedAt: new Date().toISOString(),
+  };
+
+  if (isEdit) {
+    const idx = state.entries.findIndex(e => e.id === state.editingId);
+    if (idx >= 0) state.entries[idx] = entry;
+  } else {
+    state.entries.push(entry);
+  }
+
+  saveEntries(state.entries);
+  clearDraft();
+  resetForm();
+  showToast(isEdit ? '\u2705 Entry updated' : '\u2705 Entry saved');
+  state.tab = 'log';
+  render();
+}
+
+function resetForm() {
+  state.category = '';
+  state.severity = 'medium';
+  state.description = '';
+  state.date = '';
+  state.time = '';
+  state.witnesses = '';
+  state.childrenPresent = false;
+  state.childrenNames = '';
+  state.locationNote = '';
+  state.photos = [];
+  state.editingId = null;
+}
+
+function clearForm() {
+  if (!confirm('Clear this form?')) return;
+  clearDraft();
+  resetForm();
+  render();
+}
+
+function viewEntry(id) {
+  state.viewingEntry = state.entries.find(e => e.id === id) || null;
+  render();
+}
+
+function closeModal(e) {
+  if (e.target.classList.contains('modal-overlay')) {
+    state.viewingEntry = null;
+    render();
+  }
+}
+
+function editEntry(id) {
+  const e = state.entries.find(x => x.id === id);
+  if (!e) return;
+  state.editingId = e.id;
+  state.category = e.category;
+  state.severity = e.severity;
+  state.description = e.description;
+  state.date = e.date;
+  state.time = e.time;
+  state.witnesses = e.witnesses || '';
+  state.childrenPresent = e.childrenPresent || false;
+  state.childrenNames = e.childrenNames || '';
+  state.locationNote = e.locationNote || '';
+  state.photos = e.photos ? [...e.photos] : [];
+  state.viewingEntry = null;
+  state.tab = 'new';
+  render();
+  showToast('\u270F\uFE0F Editing entry');
+}
+
+function cancelEdit() {
+  clearDraft();
+  resetForm();
+  render();
+}
+
+function deleteEntry(id) {
+  if (!confirm('Delete this entry permanently?')) return;
+  state.entries = state.entries.filter(e => e.id !== id);
+  saveEntries(state.entries);
+  state.viewingEntry = null;
+  showToast('\u{1F5D1}\uFE0F Entry deleted');
+  render();
+}
+
+// PIN
+function handlePINInput(v) { state.pinInput = v.replace(/\D/g, '').slice(0,6); }
+
+function checkPIN() {
+  if (state.pinInput === loadPIN()) {
+    setUnlocked();
+    state.locked = false;
+    state.pinInput = '';
+    render();
+  } else {
+    showToast('\u274C Wrong PIN');
+    state.pinInput = '';
+    render();
+  }
+}
+
+function setPIN() {
+  if (state.pinInput.length < 4) { showToast('PIN must be at least 4 digits'); return; }
+  if (state.pinStep === 'set') {
+    state.pinFirst = state.pinInput;
+    state.pinInput = '';
+    state.pinStep = 'confirm';
+    render();
+  } else if (state.pinStep === 'confirm') {
+    if (state.pinInput === state.pinFirst) {
+      savePIN(state.pinInput);
+      setUnlocked();
+      state.pinSet = true;
+      state.locked = false;
+      state.pinInput = '';
+      state.pinStep = 'enter';
+      showToast('\u{1F512} PIN set');
+      render();
+    } else {
+      showToast('\u274C PINs don\'t match');
+      state.pinInput = '';
+      state.pinStep = 'set';
+      render();
+    }
+  }
+}
+
+function skipPIN() {
+  localStorage.setItem(SP + '_skip_pin', 'true');
+  state.pinStep = 'enter';
+  state.pinInput = '';
+  render();
+}
+
+function togglePINSetup() {
+  if (state.pinSet) {
+    if (confirm('Remove PIN protection?')) {
+      localStorage.removeItem(SP + '_pin');
+      state.pinSet = false;
+      showToast('\u{1F513} PIN removed');
+    }
+  } else {
+    state.pinStep = 'set';
+    state.pinInput = '';
+    render();
+  }
+}
+
+function resetPIN() {
+  if (confirm('This will delete ALL your data and reset the PIN. Are you absolutely sure?')) {
+    const keys = [];
+    for (let i = 0; i < localStorage.length; i++) {
+      const k = localStorage.key(i);
+      if (k && k.startsWith(SP)) keys.push(k);
+    }
+    keys.forEach(k => localStorage.removeItem(k));
+    sessionStorage.removeItem(SP + '_unlocked');
+    state = { ...state, entries: [], pinSet: false, locked: false, pinInput: '', pinStep: 'enter', photos: [] };
+    showToast('Reset complete');
+    render();
+  }
+}
+
+// Export
+function exportFormatted() {
+  if (state.entries.length === 0) { showToast('No entries to export'); return; }
+  const sorted = [...state.entries].sort((a,b) => new Date(a.date+'T'+a.time) - new Date(b.date+'T'+b.time));
+  const ts = new Date().toLocaleString();
+
+  let html = `<!DOCTYPE html><html><head><meta charset="UTF-8"><title>Custody Incident Log \u2014 ${USER_NAME} \u2014 ${ts}</title>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Merriweather:wght@400;700&family=Source+Sans+3:wght@400;600;700&display=swap');
+  * { margin:0; padding:0; box-sizing:border-box; }
+  body { font-family:'Source Sans 3',Arial,sans-serif; max-width:800px; margin:0 auto; padding:40px 30px; color:#1a1a1a; font-size:14px; line-height:1.6; }
+  @media print { body { padding:20px; font-size:12px; } .no-print { display:none; } .entry { break-inside:avoid; } }
+  h1 { font-family:'Merriweather',serif; font-size:22px; margin-bottom:4px; }
+  .subtitle { color:#666; font-size:13px; margin-bottom:24px; }
+  .confidential { background:#fff3cd; border:1px solid #ffc107; padding:10px 14px; border-radius:6px; margin-bottom:24px; font-size:12px; font-weight:600; color:#856404; }
+  .summary { background:#f8f9fa; border:1px solid #dee2e6; border-radius:6px; padding:16px; margin-bottom:24px; }
+  .summary h2 { font-size:14px; margin-bottom:10px; text-transform:uppercase; letter-spacing:1px; color:#495057; }
+  .summary-grid { display:grid; grid-template-columns:repeat(3,1fr); gap:12px; }
+  .summary-item { text-align:center; }
+  .summary-item .num { font-size:24px; font-weight:700; }
+  .summary-item .lbl { font-size:11px; color:#666; text-transform:uppercase; letter-spacing:0.5px; }
+  .sev-critical .num { color:#dc3545; } .sev-high .num { color:#e85d04; }
+  .entry { border:1px solid #dee2e6; border-radius:6px; padding:16px; margin-bottom:12px; }
+  .entry-head { display:flex; justify-content:space-between; align-items:flex-start; margin-bottom:8px; }
+  .entry-cat { font-weight:700; font-size:13px; text-transform:uppercase; letter-spacing:0.5px; }
+  .entry-sev { font-size:11px; font-weight:700; padding:2px 8px; border-radius:12px; text-transform:uppercase; }
+  .s-critical { background:#f8d7da; color:#842029; } .s-high { background:#ffe5d0; color:#984c0c; }
+  .s-medium { background:#fff3cd; color:#664d03; } .s-low { background:#d1e7dd; color:#0f5132; }
+  .entry-date { font-size:13px; color:#495057; margin-bottom:8px; }
+  .entry-desc { font-size:14px; line-height:1.7; margin-bottom:10px; white-space:pre-wrap; }
+  .entry-details { font-size:12px; color:#666; }
+  .entry-details span { margin-right:16px; }
+  .children-flag { color:#dc3545; font-weight:600; }
+  .entry-photos { display:flex; flex-wrap:wrap; gap:8px; margin-top:10px; }
+  .entry-photos img { max-width:200px; max-height:150px; border:1px solid #dee2e6; border-radius:4px; }
+  .footer { margin-top:32px; padding-top:16px; border-top:1px solid #dee2e6; font-size:11px; color:#999; text-align:center; }
+  .print-btn { position:fixed; bottom:30px; right:30px; background:#0d6efd; color:white; border:none; padding:14px 28px; border-radius:8px; font-size:15px; font-weight:600; cursor:pointer; box-shadow:0 4px 12px rgba(0,0,0,0.3); }
+</style></head><body>
+<h1>\u{1F4CB} Custody Incident Documentation Log</h1>
+<div class="subtitle">Prepared for: ${USER_NAME} | Generated: ${ts} | Total Entries: ${sorted.length}</div>
+<div class="confidential">\u26A0\uFE0F PRIVILEGED & CONFIDENTIAL \u2014 Prepared for attorney review. Contains sensitive information regarding custody matters.</div>
+<div class="summary"><h2>Summary Overview</h2><div class="summary-grid">
+  <div class="summary-item"><div class="num">${sorted.length}</div><div class="lbl">Total Incidents</div></div>
+  <div class="summary-item sev-critical"><div class="num">${sorted.filter(e=>e.severity==='critical').length}</div><div class="lbl">Critical</div></div>
+  <div class="summary-item sev-high"><div class="num">${sorted.filter(e=>e.severity==='high').length}</div><div class="lbl">High Severity</div></div>
+  <div class="summary-item"><div class="num">${sorted.filter(e=>e.childrenPresent).length}</div><div class="lbl">Children Present</div></div>
+  <div class="summary-item"><div class="num">${sorted.filter(e=>e.witnesses).length}</div><div class="lbl">Witnessed</div></div>
+  <div class="summary-item"><div class="num">${sorted.reduce((n,e)=>(e.photos?e.photos.length:0)+n,0)}</div><div class="lbl">Photos</div></div>
+</div></div>`;
+
+  const months = {};
+  sorted.forEach(e => { const m = e.date.slice(0,7); if (!months[m]) months[m] = []; months[m].push(e); });
+
+  for (const [month, entries] of Object.entries(months)) {
+    const d = new Date(month + '-01');
+    const label = d.toLocaleDateString('en-US', { year:'numeric', month:'long' });
+    html += `<h2 style="font-size:16px;margin:24px 0 12px;padding-bottom:6px;border-bottom:2px solid #dee2e6;">${label} (${entries.length} entries)</h2>`;
+    entries.forEach(e => {
+      const cat = CATEGORIES.find(c => c.id === e.category);
+      html += `<div class="entry">
+        <div class="entry-head">
+          <div class="entry-cat">${cat ? cat.icon + ' ' + cat.label : e.category}</div>
+          <span class="entry-sev s-${e.severity}">${e.severity}</span>
+        </div>
+        <div class="entry-date">\u{1F4C5} ${formatDate(e.date)} at ${formatTime(e.time)}</div>
+        <div class="entry-desc">${esc(e.description)}</div>
+        <div class="entry-details">
+          ${e.locationNote ? `<span>\u{1F4CD} ${esc(e.locationNote)}</span>` : ''}
+          ${e.witnesses ? `<span>\u{1F441}\uFE0F Witnesses: ${esc(e.witnesses)}</span>` : ''}
+          ${e.childrenPresent ? `<span class="children-flag">\u26A0\uFE0F Children present${e.childrenNames ? ': ' + esc(e.childrenNames) : ''}</span>` : ''}
+        </div>
+        ${e.photos && e.photos.length ? `<div class="entry-photos">
+          ${e.photos.map(p => `<img src="${p}" alt="Evidence">`).join('')}
+        </div>` : ''}
+        <div style="font-size:10px;color:#aaa;margin-top:8px;font-family:monospace;">Entry ID: ${e.id} | Logged: ${new Date(e.createdAt).toLocaleString()}</div>
+      </div>`;
+    });
+  }
+
+  html += `<div class="footer"><p>Generated by CustodyLog for ${USER_NAME} | ${ts}</p>
+    <p>This document was generated from a personal incident tracking application. All entries were recorded by the user at the times indicated.</p></div>
+    <button class="print-btn no-print" onclick="window.print()">\u{1F5A8}\uFE0F Print / Save as PDF</button></body></html>`;
+
+  const blob = new Blob([html], { type: 'text/html' });
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  a.href = url; a.download = `CustodyLog_${USER_NAME}_Report_${new Date().toISOString().slice(0,10)}.html`;
+  a.click(); URL.revokeObjectURL(url);
+  showToast('\u{1F4C4} Report downloaded');
+}
+
+function exportCSV() {
+  if (state.entries.length === 0) { showToast('No entries to export'); return; }
+  const sorted = [...state.entries].sort((a,b) => new Date(a.date+'T'+a.time) - new Date(b.date+'T'+b.time));
+  const headers = ['Date','Time','Category','Severity','Description','Location','Witnesses','Children Present','Children Names','Photos','Entry ID','Created At'];
+  const rows = sorted.map(e => [
+    e.date, e.time, getCatLabel(e.category), e.severity,
+    '"' + (e.description||'').replace(/"/g, '""') + '"',
+    '"' + (e.locationNote||'').replace(/"/g, '""') + '"',
+    '"' + (e.witnesses||'').replace(/"/g, '""') + '"',
+    e.childrenPresent ? 'Yes' : 'No',
+    '"' + (e.childrenNames||'').replace(/"/g, '""') + '"',
+    e.photos ? e.photos.length : 0,
+    e.id, e.createdAt
+  ]);
+  const csv = [headers.join(','), ...rows.map(r => r.join(','))].join('\n');
+  downloadBlob(csv, 'text/csv', `CustodyLog_${USER_NAME}_${new Date().toISOString().slice(0,10)}.csv`);
+  showToast('\u{1F4CA} CSV downloaded');
+}
+
+function exportJSON() {
+  if (state.entries.length === 0) { showToast('No entries to export'); return; }
+  const data = JSON.stringify({ version: 2, user: USER_NAME, exportDate: new Date().toISOString(), entries: state.entries }, null, 2);
+  downloadBlob(data, 'application/json', `CustodyLog_${USER_NAME}_Backup_${new Date().toISOString().slice(0,10)}.json`);
+  showToast('\u{1F4BE} Backup downloaded');
+}
+
+function importJSON() {
+  const input = document.createElement('input');
+  input.type = 'file'; input.accept = '.json';
+  input.onchange = (e) => {
+    const file = e.target.files[0];
+    if (!file) return;
+    const reader = new FileReader();
+    reader.onload = (ev) => {
+      try {
+        const data = JSON.parse(ev.target.result);
+        if (data.entries && Array.isArray(data.entries)) {
+          const existingIds = new Set(state.entries.map(e => e.id));
+          let added = 0;
+          data.entries.forEach(entry => {
+            if (!existingIds.has(entry.id)) { state.entries.push(entry); added++; }
+          });
+          saveEntries(state.entries);
+          showToast('\u{1F4E5} Imported ' + added + ' new entries');
+          render();
+        } else { showToast('\u274C Invalid backup file'); }
+      } catch { showToast('\u274C Could not read file'); }
+    };
+    reader.readAsText(file);
+  };
+  input.click();
+}
+
+// Helpers
+function genId() { return Date.now().toString(36) + Math.random().toString(36).slice(2,7); }
+function getCatLabel(id) { const c = CATEGORIES.find(x=>x.id===id); return c ? c.label : id; }
+function truncate(s, n) { return s.length > n ? s.slice(0,n) + '\u2026' : s; }
+function esc(s) { const d = document.createElement('div'); d.textContent = s; return d.innerHTML; }
+function formatDate(d) { try { return new Date(d+'T00:00:00').toLocaleDateString('en-US',{weekday:'short',month:'short',day:'numeric',year:'numeric'}); } catch { return d; } }
+function formatTime(t) { try { const [h,m] = t.split(':'); const hr = parseInt(h); return (hr>12?hr-12:hr||12)+':'+m+' '+(hr>=12?'PM':'AM'); } catch { return t; } }
+function downloadBlob(content, type, filename) {
+  const blob = new Blob([content], { type });
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a'); a.href = url; a.download = filename; a.click();
+  URL.revokeObjectURL(url);
+}
+
+// Init
+if (!loadPIN() && !localStorage.getItem(SP + '_skip_pin')) {
+  state.pinStep = 'set';
+}
+loadDraft();
+render();
+
+if ('serviceWorker' in navigator) {
+  navigator.serviceWorker.register('sw.js').catch(() => {});
+}
+</script>
+</body>
+</html>
