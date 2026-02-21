@@ -569,20 +569,52 @@ function formHTML() {
 }
 
 // Media
+function compressImage(file, maxDim, quality) {
+  return new Promise((resolve, reject) => {
+    const url = URL.createObjectURL(file);
+    const img = new Image();
+    img.onload = () => {
+      URL.revokeObjectURL(url);
+      let w = img.width, h = img.height;
+      if (w > maxDim || h > maxDim) {
+        if (w > h) { h = Math.round(h * maxDim / w); w = maxDim; }
+        else { w = Math.round(w * maxDim / h); h = maxDim; }
+      }
+      const c = document.createElement('canvas');
+      c.width = w; c.height = h;
+      c.getContext('2d').drawImage(img, 0, 0, w, h);
+      const dataUrl = c.toDataURL('image/jpeg', quality);
+      resolve(dataUrl);
+    };
+    img.onerror = () => { URL.revokeObjectURL(url); reject(new Error('Image load failed')); };
+    img.src = url;
+  });
+}
+
 function addMedia(type) {
   const inputMap = { photo:'photoInput', video:'videoInput', audio:'audioInput', file:'fileInput' };
   const el = document.getElementById(inputMap[type]);
   el.value = '';
-  el.onchange = (e) => {
+  el.onchange = async (e) => {
     const file = e.target.files[0];
     if (!file) return;
     if (file.size > 10 * 1024 * 1024) { toast('⚠️ File too large (10MB max). Compress first.', true); return; }
-    const reader = new FileReader();
-    reader.onload = (ev) => {
-      S.media.push({ name: file.name, type: file.type, size: file.size, data: ev.target.result });
-      saveDraft(); render(); toast('📎 File attached');
-    };
-    reader.readAsDataURL(file);
+    if (type === 'photo' && file.type.startsWith('image/')) {
+      try {
+        toast('📷 Compressing photo...');
+        const dataUrl = await compressImage(file, 1200, 0.7);
+        const size = Math.round(dataUrl.length * 0.75);
+        S.media.push({ name: file.name, type: 'image/jpeg', size, data: dataUrl });
+        saveDraft(); render(); toast('📎 Photo attached (' + fmtBytes(size) + ')');
+      } catch { toast('⚠️ Could not process image', true); }
+    } else {
+      const reader = new FileReader();
+      reader.onload = (ev) => {
+        S.media.push({ name: file.name, type: file.type, size: file.size, data: ev.target.result });
+        saveDraft(); render(); toast('📎 File attached');
+      };
+      reader.readAsDataURL(file);
+    }
   };
   el.click();
 }
@@ -785,8 +817,9 @@ function exportTabHTML() {
       <div class="stat"><div class="num">${S.entries.reduce((n,e)=>(e.media?e.media.length:0)+n,0)}</div><div class="lbl">Attachments</div></div>
       <div class="stat">
         <div class="num" style="font-size:18px;${pct>80?'color:var(--rd)':''}">${fmtBytes(used)}</div>
-        <div class="lbl">Storage</div>
+        <div class="lbl">of ~5 MB</div>
         <div class="stor-bar"><div class="stor-fill" style="width:${pct}%;${pct>80?'background:var(--rd)':''}"></div></div>
+        <div class="lbl" style="margin-top:2px;font-size:10px">${fmtBytes(max5-used)} free</div>
       </div>
     </div>
     <div class="grp-label">📤 Export Options</div>
