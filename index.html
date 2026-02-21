@@ -309,13 +309,51 @@ const SEVS = [
   {id:'critical',label:'Critical',cls:'s-critical'},
 ];
 
-// Storage
+// IndexedDB — large storage for entries & drafts (hundreds of MB)
+let _db = null;
+function idb() {
+  if (_db) return Promise.resolve(_db);
+  return new Promise((resolve, reject) => {
+    const req = indexedDB.open(SP + '_db', 1);
+    req.onupgradeneeded = () => req.result.createObjectStore('kv');
+    req.onsuccess = () => { _db = req.result; resolve(_db); };
+    req.onerror = () => reject(req.error);
+  });
+}
+function idbGet(key) {
+  return idb().then(db => new Promise((res, rej) => {
+    const r = db.transaction('kv','readonly').objectStore('kv').get(key);
+    r.onsuccess = () => res(r.result);
+    r.onerror = () => rej(r.error);
+  }));
+}
+function idbSet(key, val) {
+  return idb().then(db => new Promise((res, rej) => {
+    const r = db.transaction('kv','readwrite').objectStore('kv').put(val, key);
+    r.onsuccess = () => res();
+    r.onerror = () => rej(r.error);
+  }));
+}
+function idbDel(key) {
+  return idb().then(db => new Promise((res, rej) => {
+    const r = db.transaction('kv','readwrite').objectStore('kv').delete(key);
+    r.onsuccess = () => res();
+    r.onerror = () => rej(r.error);
+  }));
+}
+function idbClear() {
+  return idb().then(db => new Promise((res, rej) => {
+    const r = db.transaction('kv','readwrite').objectStore('kv').clear();
+    r.onsuccess = () => res();
+    r.onerror = () => rej(r.error);
+  }));
+}
+
+// Storage — localStorage for tiny settings, IndexedDB for data
+let _cachedDraft = null;
+let _storageQuota = 0;
 const LS = {
-  entries: () => { try { return JSON.parse(localStorage.getItem(SP+'_entries')||'[]'); } catch { return []; } },
-  save: (e) => {
-    try { localStorage.setItem(SP+'_entries', JSON.stringify(e)); }
-    catch(err) { if (err.name==='QuotaExceededError') toast('Storage full! Export & clear old entries.',true); }
-  },
+  save: (e) => { idbSet('entries', e).catch(err => toast('Storage error!', true)); },
   pin: () => localStorage.getItem(SP+'_pin'),
   setPin: (p) => localStorage.setItem(SP+'_pin', p),
   rmPin: () => localStorage.removeItem(SP+'_pin'),
@@ -323,10 +361,10 @@ const LS = {
   setSeen: () => localStorage.setItem(SP+'_seen', '1'),
   onboarded: () => localStorage.getItem(SP+'_onboarded') === '1',
   setOnboarded: () => localStorage.setItem(SP+'_onboarded', '1'),
-  saveDraft: (d) => { try { localStorage.setItem(SP+'_draft', JSON.stringify(d)); } catch{} },
-  loadDraft: () => { try { return JSON.parse(localStorage.getItem(SP+'_draft')); } catch { return null; } },
-  clearDraft: () => localStorage.removeItem(SP+'_draft'),
-  hasDraft: () => { try { const d=JSON.parse(localStorage.getItem(SP+'_draft')); return d&&(d.cat||d.desc); } catch { return false; } },
+  saveDraft: (d) => { _cachedDraft = d; idbSet('draft', d).catch(()=>{}); },
+  loadDraft: () => _cachedDraft,
+  clearDraft: () => { _cachedDraft = null; idbDel('draft').catch(()=>{}); },
+  hasDraft: () => { const d = _cachedDraft; return d && (d.cat || d.desc); },
 };
 
 // State
@@ -340,7 +378,7 @@ let S = {
   media: [], editId: null,
   filter: 'all', search: '', logTypeFilter: 'all', // 'all', 'incidents', 'positive'
   viewing: null,
-  entries: LS.entries(),
+  entries: [],
 };
 
 // Draft auto-save
@@ -362,14 +400,9 @@ function loadDraft() {
   if (S.cat) S.page = 'form';
 }
 
-// Storage usage
+// Storage usage — calculated from in-memory data
 function storageUsed() {
-  let t=0;
-  for(let i=0;i<localStorage.length;i++){
-    const k=localStorage.key(i);
-    if(k&&k.startsWith(SP)) t+=(localStorage.getItem(k)||'').length*2;
-  }
-  return t;
+  try { return JSON.stringify(S.entries).length * 2; } catch { return 0; }
 }
 function fmtBytes(b){if(b<1024)return b+' B';if(b<1048576)return(b/1024).toFixed(1)+' KB';return(b/1048576).toFixed(1)+' MB';}
 
@@ -377,8 +410,41 @@ function fmtBytes(b){if(b<1024)return b+' B';if(b<1048576)return(b/1024).toFixed
 function isPositive(entry) { return entry.type === 'positive'; }
 function entryTypeLabel(entry) { return isPositive(entry) ? 'Positive' : (entry.severity || 'medium'); }
 
-// Init
-function boot() {
+// Init — async to load from IndexedDB
+async function boot() {
+  // Load entries from IndexedDB
+  try {
+    let entries = await idbGet('entries');
+    // Migrate from localStorage if IndexedDB is empty
+    if (!entries) {
+      const old = localStorage.getItem(SP+'_entries');
+      if (old) {
+        try { entries = JSON.parse(old); await idbSet('entries', entries); localStorage.removeItem(SP+'_entries'); } catch {}
+      }
+    }
+    S.entries = entries || [];
+  } catch { S.entries = []; }
+
+  // Load draft from IndexedDB
+  try {
+    let draft = await idbGet('draft');
+    if (!draft) {
+      const oldDraft = localStorage.getItem(SP+'_draft');
+      if (oldDraft) {
+        try { draft = JSON.parse(oldDraft); await idbSet('draft', draft); localStorage.removeItem(SP+'_draft'); } catch {}
+      }
+    }
+    _cachedDraft = draft || null;
+  } catch { _cachedDraft = null; }
+
+  // Get storage quota estimate
+  try {
+    if (navigator.storage && navigator.storage.estimate) {
+      const est = await navigator.storage.estimate();
+      _storageQuota = est.quota || 0;
+    }
+  } catch {}
+
   const pin = LS.pin();
   if (pin) S.screen = 'pin_enter';
   else if (!LS.seen()) S.screen = 'pin_create';
@@ -560,7 +626,8 @@ function resetAll() {
   const keys=[];
   for(let i=0;i<localStorage.length;i++){const k=localStorage.key(i);if(k&&k.startsWith(SP))keys.push(k);}
   keys.forEach(k=>localStorage.removeItem(k));
-  S.entries = []; S.pinDigits = []; S.screen = 'pin_create'; S.pinPhase = 'first';
+  idbClear().catch(()=>{});
+  S.entries = []; _cachedDraft = null; S.pinDigits = []; S.screen = 'pin_create'; S.pinPhase = 'first';
   toast('App reset'); render();
 }
 
@@ -1002,8 +1069,9 @@ function exportTabHTML() {
   const sc = {critical:0,high:0,medium:0,low:0};
   S.entries.filter(e=>!isPositive(e)).forEach(e => sc[e.severity]++);
   const used = storageUsed();
-  const max5 = 5*1024*1024;
-  const pct = Math.min(100, Math.round(used/max5*100));
+  const quota = _storageQuota || 500*1024*1024;
+  const pct = Math.min(100, Math.round(used/quota*100));
+  const quotaLabel = _storageQuota ? fmtBytes(_storageQuota) : 'large';
   return `
     <div class="stats">
       <div class="stat"><div class="num">${S.entries.length}</div><div class="lbl">Total</div></div>
@@ -1012,10 +1080,10 @@ function exportTabHTML() {
       <div class="stat"><div class="num">${totalI}</div><div class="lbl">Incidents</div></div>
       <div class="stat"><div class="num">${S.entries.reduce((n,e)=>(e.media?e.media.length:0)+n,0)}</div><div class="lbl">Attachments</div></div>
       <div class="stat">
-        <div class="num" style="font-size:18px;${pct>80?'color:var(--rd)':''}">${fmtBytes(used)}</div>
-        <div class="lbl">of ~5 MB</div>
-        <div class="stor-bar"><div class="stor-fill" style="width:${pct}%;${pct>80?'background:var(--rd)':''}"></div></div>
-        <div class="lbl" style="margin-top:2px;font-size:10px">${fmtBytes(max5-used)} free</div>
+        <div class="num" style="font-size:18px">${fmtBytes(used)}</div>
+        <div class="lbl">used</div>
+        <div class="stor-bar"><div class="stor-fill" style="width:${pct}%"></div></div>
+        <div class="lbl" style="margin-top:2px;font-size:10px">${quotaLabel} available</div>
       </div>
     </div>
     <div class="grp-label">📤 Export Options</div>
