@@ -1088,6 +1088,7 @@ function exportTabHTML() {
     </div>
     <div class="grp-label">📤 Export Options</div>
     <div class="xcard" onclick="exportReport()"><div class="xi">📄</div><div><h3>Attorney-Ready Report</h3><p>Positive moments + incidents — print or save as PDF</p></div></div>
+    <div class="xcard" onclick="exportMediaZip()"><div class="xi">📦</div><div><h3>Media Bundle (ZIP)</h3><p>All photos, videos & files — cross-referenced to report by Entry ID</p></div></div>
     <div class="xcard" onclick="exportCSV()"><div class="xi">📊</div><div><h3>Spreadsheet (CSV)</h3><p>For Excel or Google Sheets</p></div></div>
     <div class="xcard" onclick="exportJSON()"><div class="xi">💾</div><div><h3>Full Backup (JSON)</h3><p>Complete data backup with attachments</p></div></div>
     <div class="xcard" onclick="importJSON()"><div class="xi">📥</div><div><h3>Restore from Backup</h3><p>Import a previous backup file</p></div></div>
@@ -1185,7 +1186,7 @@ function renderReportEntries(entries, isPos) {
           ${e.kidsThere?`<span${isPos?'':' class="cf"'}>${isPos?'👨‍👧‍👦':'⚠️'} Children${e.kidsNames?' — '+escH(e.kidsNames):''}</span>`:''}
         </div>
         ${e.media&&e.media.length?`<div class="att">${e.media.filter(m=>m.type.startsWith('image/')).map(m=>`<img src="${m.data}">`).join('')}
-          ${e.media.filter(m=>!m.type.startsWith('image/')).map(m=>`<span style="display:inline-block;padding:4px 8px;background:#e9ecef;border-radius:4px;font-size:12px;margin:4px 4px 0 0;">📎 ${escH(m.name)}</span>`).join('')}
+          ${e.media.filter(m=>!m.type.startsWith('image/')).length?`<div style="margin-top:6px">${e.media.filter(m=>!m.type.startsWith('image/')).map(m=>`<div style="display:inline-block;padding:6px 10px;background:#e9ecef;border-radius:4px;font-size:12px;margin:4px 4px 0 0;">📎 ${escH(m.name)} <span style="color:#6c757d;font-style:italic">— file available in Media Bundle export (Entry ${e.id})</span></div>`).join('')}</div>`:''}
         </div>`:''}
         <div class="eid">ID: ${e.id} | Logged: ${createdDate}${!datesMatch?' (backdated entry)':''}</div>
       </div>`;
@@ -1212,6 +1213,124 @@ function exportJSON() {
   if (!S.entries.length) { toast('No entries'); return; }
   downloadBlob(JSON.stringify({v:3,user:USER_NAME,date:new Date().toISOString(),entries:S.entries},null,2),'application/json',`CustodyLog_${USER_NAME}_Backup_${new Date().toISOString().slice(0,10)}.json`);
   toast('Backup downloaded');
+}
+
+function exportMediaZip() {
+  const files = [];
+  const sorted = [...S.entries].sort((a,b)=>new Date(a.date+'T'+a.time)-new Date(b.date+'T'+b.time));
+  sorted.forEach(e => {
+    if (!e.media || !e.media.length) return;
+    const type = isPositive(e) ? 'Positive' : 'Incident';
+    const folder = `${e.date}_${type}_${e.id}`;
+    e.media.forEach((m, i) => {
+      const ext = m.name.split('.').pop() || 'bin';
+      const fname = `${folder}/${(i+1).toString().padStart(2,'0')}_${m.name}`;
+      const b64 = m.data.split(',')[1];
+      if (!b64) return;
+      const bin = atob(b64);
+      const bytes = new Uint8Array(bin.length);
+      for (let j = 0; j < bin.length; j++) bytes[j] = bin.charCodeAt(j);
+      files.push({ name: fname, data: bytes });
+    });
+  });
+  if (!files.length) { toast('No media files to export', true); return; }
+  // Build index
+  let idx = `MEDIA BUNDLE INDEX\n${'='.repeat(50)}\nGenerated: ${new Date().toLocaleString()}\nUser: ${USER_NAME}\nTotal files: ${files.length}\n\n`;
+  sorted.forEach(e => {
+    if (!e.media || !e.media.length) return;
+    const type = isPositive(e) ? 'Positive' : 'Incident';
+    const c = findCat(e.category, e.type);
+    idx += `Entry ID: ${e.id}\n`;
+    idx += `  Type: ${type}\n`;
+    idx += `  Date: ${e.date} ${e.time}\n`;
+    idx += `  Category: ${c ? c.label : e.category}\n`;
+    idx += `  Description: ${(e.description||'').slice(0,120)}${(e.description||'').length>120?'...':''}\n`;
+    idx += `  Files: ${e.media.map(m=>m.name).join(', ')}\n\n`;
+  });
+  const idxBytes = new TextEncoder().encode(idx);
+  files.unshift({ name: '_INDEX.txt', data: idxBytes });
+  // Build zip
+  const zip = buildZip(files);
+  downloadBlob(zip, 'application/zip', `CustodyLog_${USER_NAME}_Media_${new Date().toISOString().slice(0,10)}.zip`);
+  toast(`Media bundle: ${files.length - 1} files`);
+}
+
+function buildZip(files) {
+  const localHeaders = [];
+  const centralHeaders = [];
+  let offset = 0;
+  files.forEach(f => {
+    const nameBytes = new TextEncoder().encode(f.name);
+    const crc = crc32(f.data);
+    // Local file header
+    const lh = new Uint8Array(30 + nameBytes.length);
+    const lv = new DataView(lh.buffer);
+    lv.setUint32(0, 0x04034b50, true); // sig
+    lv.setUint16(4, 20, true); // version needed
+    lv.setUint16(6, 0, true); // flags
+    lv.setUint16(8, 0, true); // compression (STORED)
+    lv.setUint16(10, 0, true); // mod time
+    lv.setUint16(12, 0, true); // mod date
+    lv.setUint32(14, crc, true);
+    lv.setUint32(18, f.data.length, true); // compressed
+    lv.setUint32(22, f.data.length, true); // uncompressed
+    lv.setUint16(26, nameBytes.length, true);
+    lv.setUint16(28, 0, true); // extra length
+    lh.set(nameBytes, 30);
+    localHeaders.push({ header: lh, data: f.data, offset, nameBytes, crc, size: f.data.length });
+    offset += lh.length + f.data.length;
+    // Central directory header
+    const ch = new Uint8Array(46 + nameBytes.length);
+    const cv = new DataView(ch.buffer);
+    cv.setUint32(0, 0x02014b50, true);
+    cv.setUint16(4, 20, true); // version made by
+    cv.setUint16(6, 20, true); // version needed
+    cv.setUint16(8, 0, true);
+    cv.setUint16(10, 0, true); // compression
+    cv.setUint16(12, 0, true);
+    cv.setUint16(14, 0, true);
+    cv.setUint32(16, crc, true);
+    cv.setUint32(20, f.data.length, true);
+    cv.setUint32(24, f.data.length, true);
+    cv.setUint16(28, nameBytes.length, true);
+    cv.setUint16(30, 0, true);
+    cv.setUint16(32, 0, true);
+    cv.setUint16(34, 0, true);
+    cv.setUint16(36, 0, true);
+    cv.setUint32(38, 0, true);
+    cv.setUint32(42, localHeaders[localHeaders.length-1].offset, true);
+    ch.set(nameBytes, 46);
+    centralHeaders.push(ch);
+  });
+  const cdOffset = offset;
+  let cdSize = 0;
+  centralHeaders.forEach(c => cdSize += c.length);
+  const eocd = new Uint8Array(22);
+  const ev = new DataView(eocd.buffer);
+  ev.setUint32(0, 0x06054b50, true);
+  ev.setUint16(4, 0, true);
+  ev.setUint16(6, 0, true);
+  ev.setUint16(8, files.length, true);
+  ev.setUint16(10, files.length, true);
+  ev.setUint32(12, cdSize, true);
+  ev.setUint32(16, cdOffset, true);
+  ev.setUint16(20, 0, true);
+  const totalSize = offset + cdSize + 22;
+  const result = new Uint8Array(totalSize);
+  let pos = 0;
+  localHeaders.forEach(l => { result.set(l.header, pos); pos += l.header.length; result.set(l.data, pos); pos += l.data.length; });
+  centralHeaders.forEach(c => { result.set(c, pos); pos += c.length; });
+  result.set(eocd, pos);
+  return result;
+}
+
+function crc32(data) {
+  let crc = 0xFFFFFFFF;
+  for (let i = 0; i < data.length; i++) {
+    crc ^= data[i];
+    for (let j = 0; j < 8; j++) crc = (crc >>> 1) ^ (crc & 1 ? 0xEDB88320 : 0);
+  }
+  return (crc ^ 0xFFFFFFFF) >>> 0;
 }
 
 function importJSON() {
