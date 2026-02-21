@@ -7,7 +7,7 @@
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 <meta name="apple-mobile-web-app-title" content="CustodyLog">
 <meta name="theme-color" content="#0f1117">
-<meta name="description" content="Private custody incident documentation log">
+<meta name="description" content="Private custody documentation — incidents and positive moments">
 <link rel="manifest" href="manifest.json">
 <link rel="icon" type="image/png" href="icon-192.png">
 <link rel="apple-touch-icon" href="icon-192.png">
@@ -19,7 +19,7 @@
   --bdr:#2d3140;--tx:#e8e9ed;--tx2:#c0c3cf;--mt:#6b7089;
   --ac:#4a9eff;--acd:rgba(74,158,255,.12);--acb:rgba(74,158,255,.3);
   --rd:#ff6b6b;--rdd:rgba(255,107,107,.12);--rdb:rgba(255,107,107,.3);
-  --gn:#51cf96;--gnd:rgba(81,207,150,.12);
+  --gn:#51cf96;--gnd:rgba(81,207,150,.12);--gnb:rgba(81,207,150,.3);
   --yw:#ffc145;--ywd:rgba(255,193,69,.12);--ywb:rgba(255,193,69,.3);
   --r:12px;--rs:8px;
   --sat:env(safe-area-inset-top,0px);
@@ -80,6 +80,13 @@ input,textarea,select,button{font-family:inherit}
 .cat-btn .ci{font-size:20px;flex-shrink:0}
 .cat-btn:active{transform:scale(.97);background:var(--s2)}
 
+.type-switch{display:flex;gap:8px;margin-bottom:18px}
+.type-btn{flex:1;padding:16px 12px;border-radius:var(--r);border:2px solid var(--bdr);background:var(--s1);color:var(--mt);font-size:14px;font-weight:600;cursor:pointer;transition:all .15s;text-align:center;line-height:1.4}
+.type-btn:active{transform:scale(.97)}
+.type-btn .ti{font-size:24px;display:block;margin-bottom:6px}
+.type-btn.t-incident.on{border-color:var(--ywb);color:var(--yw);background:var(--ywd)}
+.type-btn.t-positive.on{border-color:var(--gnb);color:var(--gn);background:var(--gnd)}
+
 .form-page{max-width:500px;margin:0 auto}
 .back-bar{display:flex;align-items:center;gap:10px;padding:4px 0 16px;cursor:pointer}
 .back-bar .arrow{font-size:20px;color:var(--ac)}
@@ -124,11 +131,13 @@ input[type="date"],input[type="time"]{color-scheme:dark}
 .pbtn{width:100%;padding:16px;border-radius:var(--r);border:none;background:var(--ac);color:#fff;font-size:16px;font-weight:700;cursor:pointer;transition:all .15s;letter-spacing:.3px}
 .pbtn:active{transform:scale(.98);opacity:.9}
 .pbtn:disabled{opacity:.35;cursor:not-allowed}
+.pbtn.pbtn-gn{background:var(--gn)}
 .sbtn{width:100%;padding:14px;border-radius:var(--r);border:1px solid var(--bdr);background:var(--s1);color:var(--tx);font-size:15px;font-weight:600;cursor:pointer;margin-top:10px;transition:all .15s}
 .sbtn:active{transform:scale(.98)}
 
 .ecard{background:var(--s1);border:1px solid var(--bdr);border-radius:var(--r);padding:14px 16px;margin-bottom:10px;cursor:pointer;transition:all .15s;animation:slideUp .25s ease}
 .ecard:active{background:var(--s2)}
+.ecard.ecard-pos{border-color:rgba(81,207,150,.25)}
 .ehead{display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:6px}
 .ecat{font-size:12px;font-weight:700;text-transform:uppercase;letter-spacing:.6px;display:flex;align-items:center;gap:5px}
 .esev{font-size:10px;font-weight:700;padding:3px 8px;border-radius:20px;text-transform:uppercase;letter-spacing:.7px}
@@ -136,6 +145,7 @@ input[type="date"],input[type="time"]{color-scheme:dark}
 .esev.sev-medium{background:var(--ywd);color:var(--yw)}
 .esev.sev-high{background:var(--rdd);color:var(--rd)}
 .esev.sev-critical{background:rgba(255,59,59,.18);color:#ff3b3b}
+.esev.sev-positive{background:var(--gnd);color:var(--gn)}
 .edesc{font-size:14px;line-height:1.5;margin-bottom:8px;white-space:pre-wrap;word-break:break-word;color:var(--tx2)}
 .emeta{display:flex;flex-wrap:wrap;gap:10px;font-size:12px;color:var(--mt)}
 .emeta span{display:flex;align-items:center;gap:3px}
@@ -153,6 +163,7 @@ input[type="date"],input[type="time"]{color-scheme:dark}
 .fbar::-webkit-scrollbar{display:none}
 .fchip{flex-shrink:0;padding:7px 13px;border-radius:20px;border:1px solid var(--bdr);background:var(--s1);color:var(--mt);font-size:12px;font-weight:600;cursor:pointer;transition:all .15s;white-space:nowrap}
 .fchip.on{border-color:var(--acb);color:var(--ac);background:var(--acd)}
+.fchip.fchip-gn.on{border-color:var(--gnb);color:var(--gn);background:var(--gnd)}
 .fchip:active{transform:scale(.95)}
 
 .empty{text-align:center;padding:60px 20px;color:var(--mt)}
@@ -191,19 +202,33 @@ input[type="date"],input[type="time"]{color-scheme:dark}
 .modal-actions .sbtn{margin:0;flex:1}
 .dbtn{flex:.6;padding:14px;border-radius:var(--r);border:1px solid var(--rdb);background:var(--rdd);color:var(--rd);font-size:13px;font-weight:600;cursor:pointer}
 .dbtn:active{transform:scale(.95)}
-.detail-id{font-size:11px;color:var(--mt);font-family:monospace;margin-top:12px}
+.detail-id{font-size:11px;color:var(--mt);font-family:monospace;margin-top:12px;line-height:1.8}
 
 .note{padding:12px 16px;border-radius:var(--r);margin-bottom:14px;font-size:13px;line-height:1.5;display:flex;gap:10px;align-items:flex-start}
 .note .ni{font-size:18px;flex-shrink:0}
 .note-info{background:var(--acd);border:1px solid var(--acb);color:var(--ac)}
 .note-warn{background:var(--ywd);border:1px solid var(--ywb);color:var(--yw)}
+.note-gn{background:var(--gnd);border:1px solid var(--gnb);color:var(--gn)}
 
 .toast{position:fixed;bottom:calc(90px + var(--sab));left:50%;transform:translateX(-50%) translateY(20px);background:var(--gn);color:#fff;padding:12px 24px;border-radius:var(--r);font-size:14px;font-weight:600;z-index:300;opacity:0;transition:all .3s;pointer-events:none;white-space:nowrap}
 .toast.show{opacity:1;transform:translateX(-50%) translateY(0)}
 .toast.warn{background:var(--yw);color:#1a1a1a}
 
-.media-viewer{position:fixed;inset:0;background:rgba(0,0,0,.95);z-index:400;display:flex;align-items:center;justify-content:center;padding:20px;cursor:pointer;z-index:400}
+.media-viewer{position:fixed;inset:0;background:rgba(0,0,0,.95);z-index:400;display:flex;align-items:center;justify-content:center;padding:20px;cursor:pointer}
 .media-viewer img{max-width:100%;max-height:100%;object-fit:contain;border-radius:8px}
+
+/* Onboarding */
+.ob-overlay{position:fixed;inset:0;background:var(--bg);z-index:500;overflow-y:auto;-webkit-overflow-scrolling:touch;padding:calc(40px + var(--sat)) 24px calc(40px + var(--sab))}
+.ob-overlay h1{font-size:28px;font-weight:700;margin-bottom:8px;text-align:center}
+.ob-overlay .ob-sub{text-align:center;color:var(--mt);font-size:15px;margin-bottom:32px;line-height:1.5}
+.ob-section{background:var(--s1);border:1px solid var(--bdr);border-radius:var(--r);padding:20px;margin-bottom:14px}
+.ob-section h2{font-size:16px;font-weight:700;margin-bottom:10px;display:flex;align-items:center;gap:8px}
+.ob-section p,.ob-section li{font-size:14px;color:var(--tx2);line-height:1.7}
+.ob-section ul{margin:8px 0 0 20px}
+.ob-section li{margin-bottom:4px}
+.ob-section .ob-tip{font-size:12px;color:var(--mt);font-style:italic;margin-top:10px}
+.ob-start{width:100%;padding:18px;border-radius:var(--r);border:none;background:var(--ac);color:#fff;font-size:17px;font-weight:700;cursor:pointer;margin-top:20px;letter-spacing:.3px}
+.ob-start:active{transform:scale(.98);opacity:.9}
 
 @media(min-width:500px){.cat-grid{grid-template-columns:1fr 1fr 1fr}}
 @media(min-width:640px){.content,.tabs{max-width:640px;margin-left:auto;margin-right:auto}.stats{grid-template-columns:repeat(3,1fr)}}
@@ -222,10 +247,11 @@ input[type="date"],input[type="time"]{color-scheme:dark}
 <input type="file" id="importInput" accept=".json" style="display:none">
 
 <script>
-// CustodyLog v2.1 — Private Incident Documentation
+// CustodyLog v3 — Incidents + Positive Moments
 const USER_NAME = 'Zev';
 const SP = 'cl_zev';
 
+// Incident categories
 const CATS = [
   { id:'emotional',    icon:'🔴', label:'Emotional Outburst',     g:'behavior' },
   { id:'threat',       icon:'⚠️', label:'Threats / Intimidation', g:'behavior' },
@@ -241,7 +267,6 @@ const CATS = [
   { id:'financial',    icon:'💰', label:'Financial Issue',         g:'concern' },
   { id:'harassment',   icon:'📵', label:'Harassment / Stalking',  g:'concern' },
   { id:'witness',      icon:'👁️', label:'Witness Observation',    g:'docs' },
-  { id:'positive',     icon:'✅', label:'Positive Interaction',   g:'docs' },
   { id:'other',        icon:'📝', label:'Other / General Note',   g:'docs' },
 ];
 
@@ -252,6 +277,29 @@ const GROUPS = {
   children:'👶 Children',
   concern:'⚠️ Concerns',
   docs:'📋 Documentation'
+};
+
+// Positive moment categories
+const PCATS = [
+  { id:'quality_time', icon:'🎯', label:'Quality Time Together',  g:'together' },
+  { id:'activity',     icon:'🎨', label:'Fun Activity / Outing',  g:'together' },
+  { id:'routine',      icon:'🏡', label:'Daily Care & Routine',   g:'together' },
+  { id:'emotional',    icon:'💛', label:'Emotional Support',       g:'together' },
+  { id:'milestone',    icon:'⭐', label:'Milestone / Achievement', g:'growth' },
+  { id:'school',       icon:'📚', label:'School / Education',      g:'growth' },
+  { id:'health',       icon:'🩺', label:'Health & Wellness',       g:'growth' },
+  { id:'coparenting',  icon:'🤝', label:'Co-Parenting Win',        g:'coparent' },
+  { id:'communication',icon:'💬', label:'Positive Communication',  g:'coparent' },
+  { id:'event',        icon:'🎉', label:'Special Event / Holiday', g:'memorable' },
+  { id:'memory',       icon:'📸', label:'Happy Memory',            g:'memorable' },
+  { id:'other_pos',    icon:'✨', label:'Other Positive Note',     g:'memorable' },
+];
+
+const PGROUPS = {
+  together:'👨‍👧‍👦 Time Together',
+  growth:'⭐ Growth & Development',
+  coparent:'🤝 Co-Parenting',
+  memorable:'🎉 Memorable Moments'
 };
 
 const SEVS = [
@@ -266,13 +314,15 @@ const LS = {
   entries: () => { try { return JSON.parse(localStorage.getItem(SP+'_entries')||'[]'); } catch { return []; } },
   save: (e) => {
     try { localStorage.setItem(SP+'_entries', JSON.stringify(e)); }
-    catch(err) { if (err.name==='QuotaExceededError') toast('⚠️ Storage full! Export & clear old entries.',true); }
+    catch(err) { if (err.name==='QuotaExceededError') toast('Storage full! Export & clear old entries.',true); }
   },
   pin: () => localStorage.getItem(SP+'_pin'),
   setPin: (p) => localStorage.setItem(SP+'_pin', p),
   rmPin: () => localStorage.removeItem(SP+'_pin'),
   seen: () => localStorage.getItem(SP+'_seen') === '1',
   setSeen: () => localStorage.setItem(SP+'_seen', '1'),
+  onboarded: () => localStorage.getItem(SP+'_onboarded') === '1',
+  setOnboarded: () => localStorage.setItem(SP+'_onboarded', '1'),
   saveDraft: (d) => { try { localStorage.setItem(SP+'_draft', JSON.stringify(d)); } catch{} },
   loadDraft: () => { try { return JSON.parse(localStorage.getItem(SP+'_draft')); } catch { return null; } },
   clearDraft: () => localStorage.removeItem(SP+'_draft'),
@@ -284,10 +334,11 @@ let S = {
   screen: 'boot',
   pinDigits: [], pinPhase: 'first', pinFirst: [], pinError: '',
   tab: 'new', page: 'categories',
+  entryType: 'incident', // 'incident' or 'positive'
   cat: '', severity: 'medium', desc: '', date: '', time: '',
   location: '', witnesses: '', kidsThere: false, kidsNames: '',
   media: [], editId: null,
-  filter: 'all', search: '',
+  filter: 'all', search: '', logTypeFilter: 'all', // 'all', 'incidents', 'positive'
   viewing: null,
   entries: LS.entries(),
 };
@@ -295,7 +346,7 @@ let S = {
 // Draft auto-save
 function saveDraft() {
   LS.saveDraft({
-    cat:S.cat, severity:S.severity, desc:S.desc, date:S.date, time:S.time,
+    entryType:S.entryType, cat:S.cat, severity:S.severity, desc:S.desc, date:S.date, time:S.time,
     location:S.location, witnesses:S.witnesses, kidsThere:S.kidsThere,
     kidsNames:S.kidsNames, media:S.media
   });
@@ -304,7 +355,7 @@ function saveDraft() {
 function loadDraft() {
   const d = LS.loadDraft();
   if (!d) return;
-  S.cat=d.cat||''; S.severity=d.severity||'medium'; S.desc=d.desc||'';
+  S.entryType=d.entryType||'incident'; S.cat=d.cat||''; S.severity=d.severity||'medium'; S.desc=d.desc||'';
   S.date=d.date||''; S.time=d.time||''; S.location=d.location||'';
   S.witnesses=d.witnesses||''; S.kidsThere=d.kidsThere||false;
   S.kidsNames=d.kidsNames||''; S.media=d.media||[];
@@ -322,11 +373,16 @@ function storageUsed() {
 }
 function fmtBytes(b){if(b<1024)return b+' B';if(b<1048576)return(b/1024).toFixed(1)+' KB';return(b/1048576).toFixed(1)+' MB';}
 
+// Helpers to determine entry type
+function isPositive(entry) { return entry.type === 'positive'; }
+function entryTypeLabel(entry) { return isPositive(entry) ? 'Positive' : (entry.severity || 'medium'); }
+
 // Init
 function boot() {
   const pin = LS.pin();
   if (pin) S.screen = 'pin_enter';
   else if (!LS.seen()) S.screen = 'pin_create';
+  else if (!LS.onboarded()) S.screen = 'onboarding';
   else S.screen = 'app';
   loadDraft();
   render();
@@ -337,8 +393,69 @@ function render() {
   const app = document.getElementById('app');
   if (S.screen === 'pin_create') { app.innerHTML = pinCreateHTML(); return; }
   if (S.screen === 'pin_enter')  { app.innerHTML = pinEnterHTML();  return; }
+  if (S.screen === 'onboarding') { app.innerHTML = onboardingHTML(); return; }
   app.innerHTML = appHTML();
 }
+
+// Onboarding
+function onboardingHTML() {
+  return `<div class="ob-overlay fadeIn">
+    <div style="max-width:520px;margin:0 auto">
+      <div style="font-size:56px;text-align:center;margin-bottom:12px">🛡️</div>
+      <h1>Welcome to CustodyLog</h1>
+      <p class="ob-sub">Your private, secure documentation tool for custody matters.</p>
+
+      <div class="ob-section">
+        <h2>📋 What This App Does</h2>
+        <p>CustodyLog helps you maintain a detailed, timestamped record of <strong>both incidents and positive interactions</strong> related to your custody situation. All data is stored privately on your device — nothing is ever sent to any server.</p>
+      </div>
+
+      <div class="ob-section">
+        <h2>🔴 Logging Incidents</h2>
+        <p>Document concerning behavior, court order violations, communication issues, and other incidents as they happen.</p>
+        <ul>
+          <li><strong>Be factual and specific</strong> — describe what you saw, heard, or received</li>
+          <li><strong>Avoid opinions</strong> — let the facts speak for themselves</li>
+          <li><strong>Attach evidence</strong> — photos, screenshots, or recordings</li>
+          <li><strong>Note witnesses</strong> and whether children were present</li>
+          <li><strong>Rate severity</strong> so your attorney can prioritize</li>
+        </ul>
+      </div>
+
+      <div class="ob-section">
+        <h2>💚 Logging Positive Moments</h2>
+        <p>Record quality time, milestones, and positive co-parenting interactions. This is just as important as logging incidents.</p>
+        <ul>
+          <li>Shows a <strong>pattern of active, engaged parenting</strong></li>
+          <li>Documents healthy routines and stability</li>
+          <li>Records successful co-parenting communication</li>
+          <li>Positive entries appear <strong>first in attorney reports</strong></li>
+        </ul>
+      </div>
+
+      <div class="ob-section">
+        <h2>📅 Backdating Entries</h2>
+        <p>You can change the date and time on any entry to log something that happened in the past. The app automatically records <strong>when the entry was actually created</strong> for credibility — both dates appear in reports.</p>
+      </div>
+
+      <div class="ob-section">
+        <h2>🔒 Privacy & Backups</h2>
+        <ul>
+          <li>All data stays on <strong>your device</strong> — no cloud, no servers</li>
+          <li>Set a PIN to protect your entries from prying eyes</li>
+          <li><strong>Export backups regularly</strong> — clearing your browser data will delete everything</li>
+          <li>Generate attorney-ready PDF reports anytime</li>
+        </ul>
+        <p class="ob-tip">This is not legal advice. Always consult with your attorney about your specific situation.</p>
+      </div>
+
+      <button class="ob-start" onclick="finishOnboarding()">Get Started</button>
+    </div>
+  </div>`;
+}
+
+function finishOnboarding() { LS.setOnboarded(); S.screen = 'app'; render(); }
+function showOnboarding() { S.screen = 'onboarding'; render(); }
 
 // PIN
 function pinCreateHTML() {
@@ -409,8 +526,10 @@ function handlePinCreate() {
     S.pinFirst = [...S.pinDigits]; S.pinDigits = []; S.pinPhase = 'confirm'; render();
   } else {
     if (code === S.pinFirst.join('')) {
-      LS.setPin(code); LS.setSeen(); S.pinDigits = []; S.screen = 'app';
-      toast('🔒 PIN set successfully'); render();
+      LS.setPin(code); LS.setSeen(); S.pinDigits = [];
+      if (!LS.onboarded()) { S.screen = 'onboarding'; }
+      else { S.screen = 'app'; toast('🔒 PIN set successfully'); }
+      render();
     } else {
       S.pinError = 'PINs don\'t match. Try again.';
       S.pinDigits = []; S.pinPhase = 'first'; S.pinFirst = []; render();
@@ -429,7 +548,12 @@ function handlePinEnter() {
   }
 }
 
-function skipPin() { LS.setSeen(); S.screen = 'app'; render(); }
+function skipPin() {
+  LS.setSeen();
+  if (!LS.onboarded()) { S.screen = 'onboarding'; }
+  else { S.screen = 'app'; }
+  render();
+}
 
 function resetAll() {
   if (!confirm('This will delete ALL data and reset the app. Are you sure?')) return;
@@ -453,7 +577,10 @@ function appHTML() {
 function headerHTML() {
   return `<div class="header">
     <h1><span>🛡️</span> ${USER_NAME}'s CustodyLog</h1>
-    <div class="hdr-btns"><button class="ibtn" onclick="lockApp()" title="Lock">🔒</button></div>
+    <div class="hdr-btns">
+      <button class="ibtn" onclick="showOnboarding()" title="Help">?</button>
+      <button class="ibtn" onclick="lockApp()" title="Lock">🔒</button>
+    </div>
   </div>`;
 }
 
@@ -476,79 +603,120 @@ function setTab(t) {
   render();
 }
 
-// Categories
+// Categories — with type switcher
 function categoriesHTML() {
-  const groups = {};
-  CATS.forEach(c => { if (!groups[c.g]) groups[c.g] = []; groups[c.g].push(c); });
   let h = '';
   if (!LS.pin()) {
     h += `<div class="note note-info"><span class="ni">🔒</span><span>Your data is stored only on this device. Tap the lock icon to set a PIN.</span></div>`;
   }
-  for (const [g, cats] of Object.entries(groups)) {
-    h += `<div class="grp-label">${GROUPS[g]}</div><div class="cat-grid">`;
-    cats.forEach(c => {
-      h += `<button class="cat-btn" onclick="pickCat('${c.id}')"><span class="ci">${c.icon}</span>${c.label}</button>`;
-    });
-    h += '</div>';
+
+  // Type switcher
+  h += `<div class="type-switch">
+    <button class="type-btn t-incident ${S.entryType==='incident'?'on':''}" onclick="S.entryType='incident';render();">
+      <span class="ti">📋</span>Log Incident
+    </button>
+    <button class="type-btn t-positive ${S.entryType==='positive'?'on':''}" onclick="S.entryType='positive';render();">
+      <span class="ti">💚</span>Log Positive Moment
+    </button>
+  </div>`;
+
+  if (S.entryType === 'incident') {
+    const groups = {};
+    CATS.forEach(c => { if (!groups[c.g]) groups[c.g] = []; groups[c.g].push(c); });
+    for (const [g, cats] of Object.entries(groups)) {
+      h += `<div class="grp-label">${GROUPS[g]}</div><div class="cat-grid">`;
+      cats.forEach(c => {
+        h += `<button class="cat-btn" onclick="pickCat('${c.id}','incident')"><span class="ci">${c.icon}</span>${c.label}</button>`;
+      });
+      h += '</div>';
+    }
+  } else {
+    const groups = {};
+    PCATS.forEach(c => { if (!groups[c.g]) groups[c.g] = []; groups[c.g].push(c); });
+    for (const [g, cats] of Object.entries(groups)) {
+      h += `<div class="grp-label">${PGROUPS[g]}</div><div class="cat-grid">`;
+      cats.forEach(c => {
+        h += `<button class="cat-btn" onclick="pickCat('${c.id}','positive')" style="border-color:rgba(81,207,150,.2)"><span class="ci">${c.icon}</span>${c.label}</button>`;
+      });
+      h += '</div>';
+    }
   }
   return h;
 }
 
-function pickCat(id) {
-  S.cat = id; S.page = 'form';
+function pickCat(id, type) {
+  S.cat = id; S.entryType = type; S.page = 'form';
   const n = nowDT();
   if (!S.editId) { S.date = n.date; S.time = n.time; }
   saveDraft(); render(); window.scrollTo(0, 0);
 }
 
-// Form
+// Find category in either list
+function findCat(id, type) {
+  if (type === 'positive') return PCATS.find(c => c.id === id);
+  return CATS.find(c => c.id === id);
+}
+
+function catLabel(id, type) {
+  const c = findCat(id, type);
+  return c ? c.label : id;
+}
+
+// Form — adapts for incident vs positive
 function formHTML() {
-  const cat = CATS.find(c => c.id === S.cat);
+  const isPos = S.entryType === 'positive';
+  const cat = findCat(S.cat, S.entryType);
+  const descPlaceholder = isPos
+    ? 'Describe what happened. What did you do together? How did the kids react? Include details that paint a picture.'
+    : 'Describe exactly what was said or done. Stick to what you saw, heard, or received. Avoid opinions \u2014 let the facts speak.';
+  const descLabel = isPos ? 'What happened? (Be descriptive)' : 'What happened? (Be factual & specific)';
+
   return `<div class="form-page slideRight">
     <div class="back-bar" onclick="S.page='categories';render();">
       <span class="arrow">←</span>
       <span class="cat-tag">${cat ? cat.icon : ''} ${cat ? cat.label : ''}</span>
+      ${isPos ? '<span class="esev sev-positive" style="margin-left:8px">Positive</span>' : ''}
     </div>
     ${S.editId ? `<div class="note note-warn"><span class="ni">✏️</span><span>Editing existing entry</span></div>` : ''}
-    <div class="fgroup">
+    ${!isPos ? `<div class="fgroup">
       <label class="flabel">Severity</label>
       <div class="sev-row">
         ${SEVS.map(s => `<button class="sev-btn ${S.severity===s.id?s.cls:''}" onclick="S.severity='${s.id}';saveDraft();render();">${s.label}</button>`).join('')}
       </div>
-    </div>
+    </div>` : ''}
     <div class="fgroup">
-      <label class="flabel">Date & Time</label>
+      <label class="flabel">When did this ${isPos ? 'happen' : 'occur'}?</label>
       <div class="row">
         <input type="date" class="finput" value="${S.date}" onchange="S.date=this.value;saveDraft()">
         <input type="time" class="finput" value="${S.time}" onchange="S.time=this.value;saveDraft()">
       </div>
     </div>
     <div class="fgroup">
-      <label class="flabel">What happened? (Be factual & specific)</label>
-      <textarea class="ftextarea" placeholder="Describe exactly what was said or done. Stick to what you saw, heard, or received. Avoid opinions — let the facts speak."
+      <label class="flabel">${descLabel}</label>
+      <textarea class="ftextarea" placeholder="${descPlaceholder}"
         oninput="S.desc=this.value;saveDraft()">${S.desc}</textarea>
     </div>
     <div class="fgroup">
       <label class="flabel">Location (optional)</label>
-      <input type="text" class="finput" placeholder="Where did this happen?" value="${esc(S.location)}" oninput="S.location=this.value;saveDraft()">
+      <input type="text" class="finput" placeholder="${isPos ? 'Where were you?' : 'Where did this happen?'}" value="${esc(S.location)}" oninput="S.location=this.value;saveDraft()">
     </div>
-    <div class="fgroup">
+    ${!isPos ? `<div class="fgroup">
       <label class="flabel">Witnesses (optional)</label>
       <input type="text" class="finput" placeholder="Names of anyone who saw or heard" value="${esc(S.witnesses)}" oninput="S.witnesses=this.value;saveDraft()">
-    </div>
+    </div>` : ''}
     <div class="chk-row" onclick="S.kidsThere=!S.kidsThere;saveDraft();render();">
       <input type="checkbox" ${S.kidsThere?'checked':''} tabindex="-1">
-      <label>Children were present / involved</label>
+      <label>${isPos ? 'Children were with me' : 'Children were present / involved'}</label>
     </div>
     ${S.kidsThere ? `<div class="fgroup" style="margin-top:0">
       <input type="text" class="finput" placeholder="Which children? (names/ages)" value="${esc(S.kidsNames)}" oninput="S.kidsNames=this.value;saveDraft()">
     </div>` : ''}
     <div class="media-section">
-      <label class="flabel">Attachments (optional)</label>
+      <label class="flabel">${isPos ? 'Photos & Memories (optional)' : 'Attachments (optional)'}</label>
       <div class="media-btns">
         <button class="media-btn" onclick="addMedia('photo')"><span class="mi">📷</span> Photo</button>
         <button class="media-btn" onclick="addMedia('video')"><span class="mi">🎥</span> Video</button>
-        <button class="media-btn" onclick="addMedia('audio')"><span class="mi">🎙️</span> Audio</button>
+        ${!isPos ? `<button class="media-btn" onclick="addMedia('audio')"><span class="mi">🎙️</span> Audio</button>` : ''}
         <button class="media-btn" onclick="addMedia('file')"><span class="mi">📎</span> File</button>
       </div>
       ${S.media.length ? `<div class="media-list">
@@ -562,7 +730,7 @@ function formHTML() {
         </div>`).join('')}
       </div>` : ''}
     </div>
-    <button class="pbtn" onclick="saveEntry()" ${!S.desc.trim()?'disabled':''}>${S.editId ? '💾 Update Entry' : '💾 Save Entry'}</button>
+    <button class="pbtn${isPos?' pbtn-gn':''}" onclick="saveEntry()" ${!S.desc.trim()?'disabled':''}>${S.editId ? '💾 Update Entry' : (isPos ? '💚 Save Positive Moment' : '💾 Save Entry')}</button>
     ${S.editId ? `<button class="sbtn" onclick="cancelEdit()">Cancel</button>` : ''}
     ${!S.editId && (S.desc || S.media.length) ? `<button class="sbtn" style="color:var(--rd);border-color:var(--rdb)" onclick="clearForm()">Clear Form</button>` : ''}
   </div>`;
@@ -598,20 +766,20 @@ function addMedia(type) {
   el.onchange = async (e) => {
     const file = e.target.files[0];
     if (!file) return;
-    if (file.size > 10 * 1024 * 1024) { toast('⚠️ File too large (10MB max). Compress first.', true); return; }
+    if (file.size > 10 * 1024 * 1024) { toast('File too large (10MB max).', true); return; }
     if (type === 'photo' && file.type.startsWith('image/')) {
       try {
-        toast('📷 Compressing photo...');
+        toast('Compressing photo...');
         const dataUrl = await compressImage(file, 1200, 0.7);
         const size = Math.round(dataUrl.length * 0.75);
         S.media.push({ name: file.name, type: 'image/jpeg', size, data: dataUrl });
-        saveDraft(); render(); toast('📎 Photo attached (' + fmtBytes(size) + ')');
-      } catch { toast('⚠️ Could not process image', true); }
+        saveDraft(); render(); toast('Photo attached (' + fmtBytes(size) + ')');
+      } catch { toast('Could not process image', true); }
     } else {
       const reader = new FileReader();
       reader.onload = (ev) => {
         S.media.push({ name: file.name, type: file.type, size: file.size, data: ev.target.result });
-        saveDraft(); render(); toast('📎 File attached');
+        saveDraft(); render(); toast('File attached');
       };
       reader.readAsDataURL(file);
     }
@@ -643,7 +811,7 @@ function openMedia(entryId, mediaIdx) {
   overlay.className = 'media-viewer';
   overlay.onclick = () => overlay.remove();
   const img = document.createElement('img');
-  img.src = m.data; img.alt = 'Evidence photo';
+  img.src = m.data; img.alt = 'Photo';
   overlay.appendChild(img);
   document.body.appendChild(overlay);
 }
@@ -652,13 +820,15 @@ function openMedia(entryId, mediaIdx) {
 function saveEntry() {
   if (!S.desc.trim() || !S.cat) return;
   const isEdit = !!S.editId;
+  const isPos = S.entryType === 'positive';
   const n = nowDT();
   const entry = {
     id: S.editId || genId(),
-    category: S.cat, severity: S.severity,
+    type: isPos ? 'positive' : 'incident',
+    category: S.cat, severity: isPos ? 'positive' : S.severity,
     description: S.desc.trim(),
     date: S.date || n.date, time: S.time || n.time,
-    location: S.location.trim(), witnesses: S.witnesses.trim(),
+    location: S.location.trim(), witnesses: isPos ? '' : S.witnesses.trim(),
     kidsThere: S.kidsThere, kidsNames: S.kidsNames.trim(),
     media: S.media.map(m => ({name:m.name, type:m.type, size:m.size, data:m.data})),
     createdAt: isEdit ? (S.entries.find(e=>e.id===S.editId)||{}).createdAt || new Date().toISOString() : new Date().toISOString(),
@@ -674,7 +844,7 @@ function saveEntry() {
 
   LS.save(S.entries);
   LS.clearDraft();
-  toast(isEdit ? '✅ Entry updated' : '✅ Entry saved');
+  toast(isEdit ? 'Entry updated' : (isPos ? '💚 Positive moment saved' : 'Entry saved'));
   resetForm();
   S.tab = 'log'; S.page = 'categories';
   render();
@@ -683,7 +853,7 @@ function saveEntry() {
 function resetForm() {
   S.cat=''; S.severity='medium'; S.desc=''; S.date=''; S.time='';
   S.location=''; S.witnesses=''; S.kidsThere=false; S.kidsNames='';
-  S.media=[]; S.editId=null;
+  S.media=[]; S.editId=null; S.entryType='incident';
 }
 
 function clearForm() {
@@ -696,37 +866,54 @@ function cancelEdit() { LS.clearDraft(); resetForm(); S.page='categories'; rende
 // Log
 function logHTML() {
   let list = [...S.entries].sort((a,b) => new Date(b.date+'T'+b.time) - new Date(a.date+'T'+a.time));
+
+  // Type filter
+  if (S.logTypeFilter === 'incidents') list = list.filter(e => !isPositive(e));
+  if (S.logTypeFilter === 'positive') list = list.filter(e => isPositive(e));
+
   if (S.search) {
     const q = S.search.toLowerCase();
-    list = list.filter(e => e.description.toLowerCase().includes(q) || (e.witnesses||'').toLowerCase().includes(q) || (e.location||'').toLowerCase().includes(q) || catLabel(e.category).toLowerCase().includes(q));
+    list = list.filter(e => e.description.toLowerCase().includes(q) || (e.witnesses||'').toLowerCase().includes(q) || (e.location||'').toLowerCase().includes(q) || catLabel(e.category, e.type).toLowerCase().includes(q));
   }
   if (S.filter !== 'all') list = list.filter(e => e.category === S.filter);
-  const usedCats = [...new Set(S.entries.map(e => e.category))];
+
+  const totalIncidents = S.entries.filter(e => !isPositive(e)).length;
+  const totalPositive = S.entries.filter(e => isPositive(e)).length;
+  const usedCats = [...new Set(list.map(e => e.category))];
+
   return `
     <div class="search-bar"><span class="si">🔍</span>
       <input type="text" placeholder="Search entries..." value="${esc(S.search)}" oninput="S.search=this.value;render();">
     </div>
     <div class="fbar">
-      <button class="fchip ${S.filter==='all'?'on':''}" onclick="S.filter='all';render();">All (${S.entries.length})</button>
+      <button class="fchip ${S.logTypeFilter==='all'?'on':''}" onclick="S.logTypeFilter='all';S.filter='all';render();">All (${S.entries.length})</button>
+      <button class="fchip ${S.logTypeFilter==='incidents'?'on':''}" onclick="S.logTypeFilter='incidents';S.filter='all';render();">📋 Incidents (${totalIncidents})</button>
+      <button class="fchip fchip-gn ${S.logTypeFilter==='positive'?'on':''}" onclick="S.logTypeFilter='positive';S.filter='all';render();">💚 Positive (${totalPositive})</button>
+    </div>
+    ${usedCats.length > 1 ? `<div class="fbar">
+      <button class="fchip ${S.filter==='all'?'on':''}" onclick="S.filter='all';render();">All</button>
       ${usedCats.map(cid => {
-        const c = CATS.find(x=>x.id===cid);
-        const cnt = S.entries.filter(e=>e.category===cid).length;
+        const e0 = list.find(e=>e.category===cid);
+        const c = findCat(cid, e0 ? e0.type : 'incident');
+        const cnt = list.filter(e=>e.category===cid).length;
         return `<button class="fchip ${S.filter===cid?'on':''}" onclick="S.filter='${cid}';render();">${c?c.icon:''} ${c?c.label:cid} (${cnt})</button>`;
       }).join('')}
-    </div>
-    ${list.length === 0 ? `<div class="empty"><div class="ei">📋</div>
+    </div>` : ''}
+    ${list.length === 0 ? `<div class="empty"><div class="ei">${S.logTypeFilter==='positive'?'💚':'📋'}</div>
       <h3>${S.entries.length===0?'No entries yet':'No matching entries'}</h3>
-      <p>${S.entries.length===0?'Tap "+ New Entry" to log your first incident':'Try adjusting your search or filter'}</p></div>`
+      <p>${S.entries.length===0?'Tap "+ New Entry" to log your first entry':'Try adjusting your search or filter'}</p></div>`
     : list.map(e => entryCardHTML(e)).join('')}`;
 }
 
 function entryCardHTML(e) {
-  const c = CATS.find(x => x.id === e.category);
+  const pos = isPositive(e);
+  const c = findCat(e.category, e.type);
   const hasMed = e.media && e.media.length > 0;
-  return `<div class="ecard" onclick="viewEntry('${e.id}')">
+  const sevColor = pos ? 'var(--gn)' : (e.severity==='critical'||e.severity==='high'?'var(--rd)':e.severity==='medium'?'var(--yw)':'var(--gn)');
+  return `<div class="ecard${pos?' ecard-pos':''}" onclick="viewEntry('${e.id}')">
     <div class="ehead">
-      <div class="ecat" style="color:${e.severity==='critical'||e.severity==='high'?'var(--rd)':e.severity==='medium'?'var(--yw)':'var(--gn)'}">${c?c.icon:'📝'} ${c?c.label:e.category}</div>
-      <span class="esev sev-${e.severity}">${e.severity}</span>
+      <div class="ecat" style="color:${sevColor}">${c?c.icon:'📝'} ${c?c.label:e.category}</div>
+      <span class="esev sev-${pos?'positive':e.severity}">${pos?'Positive':e.severity}</span>
     </div>
     <div class="edesc">${esc(truncate(e.description, 150))}</div>
     <div class="emeta">
@@ -735,7 +922,7 @@ function entryCardHTML(e) {
       ${e.location?`<span>📍 ${esc(truncate(e.location,25))}</span>`:''}
     </div>
     ${(e.kidsThere || e.witnesses || hasMed) ? `<div class="ebadges">
-      ${e.kidsThere?`<span class="badge badge-rd">Children Present</span>`:''}
+      ${e.kidsThere?`<span class="badge ${pos?'badge-gn':'badge-rd'}">${pos?'Kids With Me':'Children Present'}</span>`:''}
       ${e.witnesses?`<span class="badge badge-ac">Witnessed</span>`:''}
       ${hasMed?`<span class="badge badge-gn">${e.media.length} File${e.media.length>1?'s':''}</span>`:''}
     </div>` : ''}
@@ -747,27 +934,35 @@ function viewEntry(id) { S.viewing = S.entries.find(e=>e.id===id)||null; render(
 function modalHTML() {
   const e = S.viewing;
   if (!e) return '';
-  const c = CATS.find(x=>x.id===e.category);
+  const pos = isPositive(e);
+  const c = findCat(e.category, e.type);
   const hasMed = e.media && e.media.length > 0;
+  const createdDate = new Date(e.createdAt).toLocaleString();
+  const eventDate = fmtDate(e.date) + ' at ' + fmtTime(e.time);
+  const datesMatch = e.createdAt && e.date === e.createdAt.slice(0,10);
+
   return `<div class="modal-bg open" onclick="closeModal(event)"><div class="modal">
     <div class="modal-handle"></div>
     <div style="display:flex;justify-content:space-between;align-items:center">
       <h2>${c?c.icon:''} ${c?c.label:e.category}</h2>
-      <span class="esev sev-${e.severity}">${e.severity}</span>
+      <span class="esev sev-${pos?'positive':e.severity}">${pos?'Positive':e.severity}</span>
     </div>
-    <div class="detail-row"><div class="dl">Date & Time</div><div class="dv">${fmtDate(e.date)} at ${fmtTime(e.time)}</div></div>
+    <div class="detail-row"><div class="dl">${pos?'When':'Date & Time'}</div><div class="dv">${eventDate}</div></div>
     ${e.location?`<div class="detail-row"><div class="dl">Location</div><div class="dv">${esc(e.location)}</div></div>`:''}
     <div class="detail-row"><div class="dl">Description</div><div class="dv">${esc(e.description)}</div></div>
-    ${e.witnesses?`<div class="detail-row"><div class="dl">Witnesses</div><div class="dv">${esc(e.witnesses)}</div></div>`:''}
-    ${e.kidsThere?`<div class="detail-row"><div class="dl">Children Present</div><div class="dv">Yes${e.kidsNames?' — '+esc(e.kidsNames):''}</div></div>`:''}
-    ${hasMed ? `<div class="detail-row"><div class="dl">Attachments (${e.media.length})</div>
+    ${e.witnesses && !pos?`<div class="detail-row"><div class="dl">Witnesses</div><div class="dv">${esc(e.witnesses)}</div></div>`:''}
+    ${e.kidsThere?`<div class="detail-row"><div class="dl">${pos?'Children With Me':'Children Present'}</div><div class="dv">Yes${e.kidsNames?' — '+esc(e.kidsNames):''}</div></div>`:''}
+    ${hasMed ? `<div class="detail-row"><div class="dl">${pos?'Photos':'Attachments'} (${e.media.length})</div>
       <div class="modal-media">${e.media.map((m,i) => {
         if (m.type.startsWith('image/')) return `<div class="mm" onclick="event.stopPropagation();openMedia('${e.id}',${i})"><img src="${m.data}"></div>`;
         if (m.type.startsWith('video/')) return `<div class="mm"><video src="${m.data}" controls style="width:100%;height:100%;object-fit:cover"></video></div>`;
         if (m.type.startsWith('audio/')) return `<div class="mm" style="width:140px"><audio src="${m.data}" controls style="width:100%"></audio></div>`;
         return `<div class="mm">📎</div>`;
       }).join('')}</div></div>` : ''}
-    <div class="detail-id">ID: ${e.id} | Logged: ${new Date(e.createdAt).toLocaleString()}</div>
+    <div class="detail-id">
+      ID: ${e.id}<br>
+      Logged: ${createdDate}${!datesMatch ? ' (backdated entry)' : ''}${e.updatedAt && e.updatedAt !== e.createdAt ? '<br>Last edited: '+new Date(e.updatedAt).toLocaleString() : ''}
+    </div>
     <div class="modal-actions">
       <button class="sbtn" onclick="editEntry('${e.id}')">✏️ Edit</button>
       <button class="dbtn" onclick="deleteEntry('${e.id}')">🗑️ Delete</button>
@@ -780,19 +975,19 @@ function closeModal(ev) { if (ev.target.classList.contains('modal-bg')) { S.view
 function editEntry(id) {
   const e = S.entries.find(x=>x.id===id);
   if (!e) return;
-  S.editId=e.id; S.cat=e.category; S.severity=e.severity;
+  S.editId=e.id; S.entryType=e.type||'incident'; S.cat=e.category; S.severity=e.severity||'medium';
   S.desc=e.description; S.date=e.date; S.time=e.time;
   S.location=e.location||''; S.witnesses=e.witnesses||'';
   S.kidsThere=e.kidsThere||false; S.kidsNames=e.kidsNames||'';
   S.media=(e.media||[]).map(m=>({...m}));
   S.viewing=null; S.tab='new'; S.page='form';
-  render(); toast('✏️ Editing entry');
+  render(); toast('Editing entry');
 }
 
 function deleteEntry(id) {
   if (!confirm('Delete this entry permanently?')) return;
   S.entries=S.entries.filter(e=>e.id!==id);
-  LS.save(S.entries); S.viewing=null; toast('🗑️ Entry deleted'); render();
+  LS.save(S.entries); S.viewing=null; toast('Entry deleted'); render();
 }
 
 function lockApp() {
@@ -802,18 +997,19 @@ function lockApp() {
 
 // Export
 function exportTabHTML() {
-  const t = S.entries.length;
+  const totalI = S.entries.filter(e=>!isPositive(e)).length;
+  const totalP = S.entries.filter(e=>isPositive(e)).length;
   const sc = {critical:0,high:0,medium:0,low:0};
-  S.entries.forEach(e => sc[e.severity]++);
+  S.entries.filter(e=>!isPositive(e)).forEach(e => sc[e.severity]++);
   const used = storageUsed();
   const max5 = 5*1024*1024;
   const pct = Math.min(100, Math.round(used/max5*100));
   return `
     <div class="stats">
-      <div class="stat"><div class="num">${t}</div><div class="lbl">Total</div></div>
+      <div class="stat"><div class="num">${S.entries.length}</div><div class="lbl">Total</div></div>
+      <div class="stat"><div class="num" style="color:var(--gn)">${totalP}</div><div class="lbl">Positive</div></div>
       <div class="stat"><div class="num" style="color:var(--rd)">${sc.critical+sc.high}</div><div class="lbl">High+Critical</div></div>
-      <div class="stat"><div class="num">${new Set(S.entries.map(e=>e.category)).size}</div><div class="lbl">Categories</div></div>
-      <div class="stat"><div class="num">${S.entries.filter(e=>e.kidsThere).length}</div><div class="lbl">Kids Present</div></div>
+      <div class="stat"><div class="num">${totalI}</div><div class="lbl">Incidents</div></div>
       <div class="stat"><div class="num">${S.entries.reduce((n,e)=>(e.media?e.media.length:0)+n,0)}</div><div class="lbl">Attachments</div></div>
       <div class="stat">
         <div class="num" style="font-size:18px;${pct>80?'color:var(--rd)':''}">${fmtBytes(used)}</div>
@@ -823,7 +1019,7 @@ function exportTabHTML() {
       </div>
     </div>
     <div class="grp-label">📤 Export Options</div>
-    <div class="xcard" onclick="exportReport()"><div class="xi">📄</div><div><h3>Attorney-Ready Report</h3><p>Formatted HTML — print or save as PDF</p></div></div>
+    <div class="xcard" onclick="exportReport()"><div class="xi">📄</div><div><h3>Attorney-Ready Report</h3><p>Positive moments + incidents — print or save as PDF</p></div></div>
     <div class="xcard" onclick="exportCSV()"><div class="xi">📊</div><div><h3>Spreadsheet (CSV)</h3><p>For Excel or Google Sheets</p></div></div>
     <div class="xcard" onclick="exportJSON()"><div class="xi">💾</div><div><h3>Full Backup (JSON)</h3><p>Complete data backup with attachments</p></div></div>
     <div class="xcard" onclick="importJSON()"><div class="xi">📥</div><div><h3>Restore from Backup</h3><p>Import a previous backup file</p></div></div>
@@ -832,9 +1028,10 @@ function exportTabHTML() {
 
 function exportReport() {
   if (!S.entries.length) { toast('No entries'); return; }
-  const sorted = [...S.entries].sort((a,b)=>new Date(a.date+'T'+a.time)-new Date(b.date+'T'+b.time));
+  const positives = [...S.entries].filter(e=>isPositive(e)).sort((a,b)=>new Date(a.date+'T'+a.time)-new Date(b.date+'T'+b.time));
+  const incidents = [...S.entries].filter(e=>!isPositive(e)).sort((a,b)=>new Date(a.date+'T'+a.time)-new Date(b.date+'T'+b.time));
   const now = new Date().toLocaleString();
-  let h = `<!DOCTYPE html><html><head><meta charset="UTF-8"><title>Custody Incident Log — ${USER_NAME} — ${now}</title>
+  let h = `<!DOCTYPE html><html><head><meta charset="UTF-8"><title>Custody Documentation — ${USER_NAME} — ${now}</title>
 <style>
 @import url('https://fonts.googleapis.com/css2?family=Source+Sans+3:wght@400;600;700&display=swap');
 *{margin:0;padding:0;box-sizing:border-box}
@@ -847,13 +1044,18 @@ h1{font-size:22px;margin-bottom:4px}
 .summary h2{font-size:14px;margin-bottom:10px;text-transform:uppercase;letter-spacing:1px;color:#495057}
 .sg{display:grid;grid-template-columns:repeat(3,1fr);gap:12px}
 .si{text-align:center}.si .n{font-size:24px;font-weight:700}.si .l{font-size:11px;color:#666;text-transform:uppercase}
+.section-header{font-size:20px;margin:30px 0 16px;padding-bottom:8px;border-bottom:3px solid}
+.section-header.sh-pos{border-color:#28a745;color:#28a745}
+.section-header.sh-inc{border-color:#dc3545;color:#dc3545}
 .monthh{font-size:16px;margin:24px 0 12px;padding-bottom:6px;border-bottom:2px solid #dee2e6}
 .entry{border:1px solid #dee2e6;border-radius:6px;padding:16px;margin-bottom:12px}
+.entry.entry-pos{border-left:4px solid #28a745}
 .eh{display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:6px}
 .ec{font-weight:700;font-size:13px;text-transform:uppercase;letter-spacing:.5px}
 .es{font-size:11px;font-weight:700;padding:2px 8px;border-radius:12px;text-transform:uppercase}
 .s-critical{background:#f8d7da;color:#842029}.s-high{background:#ffe5d0;color:#984c0c}
 .s-medium{background:#fff3cd;color:#664d03}.s-low{background:#d1e7dd;color:#0f5132}
+.s-positive{background:#d1e7dd;color:#0f5132}
 .ed{font-size:13px;color:#495057;margin-bottom:6px}
 .edesc{font-size:14px;line-height:1.7;margin-bottom:8px;white-space:pre-wrap}
 .edet{font-size:12px;color:#666}.edet span{margin-right:14px}
@@ -863,66 +1065,85 @@ h1{font-size:22px;margin-bottom:4px}
 .footer{margin-top:32px;padding-top:16px;border-top:1px solid #dee2e6;font-size:11px;color:#999;text-align:center}
 .pbtn{position:fixed;bottom:30px;right:30px;background:#0d6efd;color:#fff;border:none;padding:14px 28px;border-radius:8px;font-size:15px;font-weight:600;cursor:pointer;box-shadow:0 4px 12px rgba(0,0,0,.3)}
 </style></head><body>
-<h1>📋 Custody Incident Documentation Log</h1>
-<div class="sub">Prepared for: ${USER_NAME} | Generated: ${now} | Total: ${sorted.length}</div>
+<h1>📋 Custody Documentation Log</h1>
+<div class="sub">Prepared for: ${USER_NAME} | Generated: ${now} | ${positives.length} positive moments, ${incidents.length} incidents</div>
 <div class="conf">⚠️ PRIVILEGED & CONFIDENTIAL — Prepared for attorney review.</div>
 <div class="summary"><h2>Summary</h2><div class="sg">
-<div class="si"><div class="n">${sorted.length}</div><div class="l">Total</div></div>
-<div class="si"><div class="n" style="color:#dc3545">${sorted.filter(e=>e.severity==='critical').length}</div><div class="l">Critical</div></div>
-<div class="si"><div class="n" style="color:#e85d04">${sorted.filter(e=>e.severity==='high').length}</div><div class="l">High</div></div>
-<div class="si"><div class="n">${sorted.filter(e=>e.kidsThere).length}</div><div class="l">Kids Present</div></div>
-<div class="si"><div class="n">${sorted.filter(e=>e.witnesses).length}</div><div class="l">Witnessed</div></div>
-<div class="si"><div class="n">${sorted.filter(e=>e.media&&e.media.length).length}</div><div class="l">W/ Attachments</div></div>
+<div class="si"><div class="n">${S.entries.length}</div><div class="l">Total Entries</div></div>
+<div class="si"><div class="n" style="color:#28a745">${positives.length}</div><div class="l">Positive Moments</div></div>
+<div class="si"><div class="n" style="color:#dc3545">${incidents.length}</div><div class="l">Incidents</div></div>
+<div class="si"><div class="n" style="color:#dc3545">${incidents.filter(e=>e.severity==='critical').length}</div><div class="l">Critical</div></div>
+<div class="si"><div class="n">${S.entries.filter(e=>e.kidsThere).length}</div><div class="l">Kids Involved</div></div>
+<div class="si"><div class="n">${S.entries.filter(e=>e.media&&e.media.length).length}</div><div class="l">W/ Attachments</div></div>
 </div></div>`;
 
-  const months = {};
-  sorted.forEach(e => { const m = e.date.slice(0,7); if (!months[m]) months[m] = []; months[m].push(e); });
+  // Positive section first
+  if (positives.length) {
+    h += `<h2 class="section-header sh-pos">💚 Positive Parenting & Co-Parenting (${positives.length})</h2>`;
+    h += renderReportEntries(positives, true);
+  }
 
-  for (const [month, entries] of Object.entries(months)) {
+  // Incidents section
+  if (incidents.length) {
+    h += `<h2 class="section-header sh-inc">📋 Documented Incidents (${incidents.length})</h2>`;
+    h += renderReportEntries(incidents, false);
+  }
+
+  h += `<div class="footer"><p>Generated by CustodyLog for ${USER_NAME} | ${now}</p><p>Entries recorded by user at times indicated. Each entry shows both the event date and the date it was logged.</p></div>
+  <button class="pbtn no-print" onclick="window.print()">🖨️ Print / Save as PDF</button></body></html>`;
+  downloadBlob(h,'text/html',`CustodyLog_${USER_NAME}_Report_${new Date().toISOString().slice(0,10)}.html`);
+  toast('Report downloaded');
+}
+
+function renderReportEntries(entries, isPos) {
+  let h = '';
+  const months = {};
+  entries.forEach(e => { const m = e.date.slice(0,7); if (!months[m]) months[m] = []; months[m].push(e); });
+
+  for (const [month, ents] of Object.entries(months)) {
     const d = new Date(month+'-01');
-    h += `<h2 class="monthh">${d.toLocaleDateString('en-US',{year:'numeric',month:'long'})} (${entries.length})</h2>`;
-    entries.forEach(e => {
-      const c = CATS.find(x=>x.id===e.category);
-      h += `<div class="entry">
-        <div class="eh"><div class="ec">${c?c.icon+' '+c.label:e.category}</div><span class="es s-${e.severity}">${e.severity}</span></div>
+    h += `<h2 class="monthh">${d.toLocaleDateString('en-US',{year:'numeric',month:'long'})} (${ents.length})</h2>`;
+    ents.forEach(e => {
+      const c = findCat(e.category, e.type);
+      const createdDate = new Date(e.createdAt).toLocaleString();
+      const datesMatch = e.createdAt && e.date === e.createdAt.slice(0,10);
+      h += `<div class="entry${isPos?' entry-pos':''}">
+        <div class="eh"><div class="ec">${c?c.icon+' '+c.label:e.category}</div><span class="es s-${isPos?'positive':e.severity}">${isPos?'Positive':e.severity}</span></div>
         <div class="ed">📅 ${fmtDate(e.date)} at ${fmtTime(e.time)}</div>
         <div class="edesc">${escH(e.description)}</div>
         <div class="edet">
           ${e.location?`<span>📍 ${escH(e.location)}</span>`:''}
-          ${e.witnesses?`<span>👁️ ${escH(e.witnesses)}</span>`:''}
-          ${e.kidsThere?`<span class="cf">⚠️ Children${e.kidsNames?' — '+escH(e.kidsNames):''}</span>`:''}
+          ${e.witnesses && !isPos?`<span>👁️ ${escH(e.witnesses)}</span>`:''}
+          ${e.kidsThere?`<span${isPos?'':' class="cf"'}>${isPos?'👨‍👧‍👦':'⚠️'} Children${e.kidsNames?' — '+escH(e.kidsNames):''}</span>`:''}
         </div>
         ${e.media&&e.media.length?`<div class="att">${e.media.filter(m=>m.type.startsWith('image/')).map(m=>`<img src="${m.data}">`).join('')}
           ${e.media.filter(m=>!m.type.startsWith('image/')).map(m=>`<span style="display:inline-block;padding:4px 8px;background:#e9ecef;border-radius:4px;font-size:12px;margin:4px 4px 0 0;">📎 ${escH(m.name)}</span>`).join('')}
         </div>`:''}
-        <div class="eid">ID: ${e.id} | Logged: ${new Date(e.createdAt).toLocaleString()}</div>
+        <div class="eid">ID: ${e.id} | Logged: ${createdDate}${!datesMatch?' (backdated entry)':''}</div>
       </div>`;
     });
   }
-  h += `<div class="footer"><p>Generated by CustodyLog for ${USER_NAME} | ${now}</p><p>Entries recorded by user at times indicated.</p></div>
-  <button class="pbtn no-print" onclick="window.print()">🖨️ Print / Save as PDF</button></body></html>`;
-  downloadBlob(h,'text/html',`CustodyLog_${USER_NAME}_Report_${new Date().toISOString().slice(0,10)}.html`);
-  toast('📄 Report downloaded');
+  return h;
 }
 
 function exportCSV() {
   if (!S.entries.length) { toast('No entries'); return; }
   const sorted = [...S.entries].sort((a,b)=>new Date(a.date+'T'+a.time)-new Date(b.date+'T'+b.time));
-  const hdr = ['Date','Time','Category','Severity','Description','Location','Witnesses','Children Present','Children Names','Attachments','Entry ID','Created'];
-  const rows = sorted.map(e => [e.date,e.time,catLabel(e.category),e.severity,
+  const hdr = ['Type','Date','Time','Category','Severity','Description','Location','Witnesses','Children Present','Children Names','Attachments','Entry ID','Created','Updated'];
+  const rows = sorted.map(e => [isPositive(e)?'Positive':'Incident',e.date,e.time,catLabel(e.category,e.type),isPositive(e)?'Positive':e.severity,
     '"'+(e.description||'').replace(/"/g,'""')+'"',
     '"'+(e.location||'').replace(/"/g,'""')+'"',
     '"'+(e.witnesses||'').replace(/"/g,'""')+'"',
     e.kidsThere?'Yes':'No','"'+(e.kidsNames||'').replace(/"/g,'""')+'"',
-    (e.media||[]).length, e.id, e.createdAt]);
+    (e.media||[]).length, e.id, e.createdAt, e.updatedAt||'']);
   downloadBlob([hdr.join(','),...rows.map(r=>r.join(','))].join('\n'),'text/csv',`CustodyLog_${USER_NAME}_${new Date().toISOString().slice(0,10)}.csv`);
-  toast('📊 CSV downloaded');
+  toast('CSV downloaded');
 }
 
 function exportJSON() {
   if (!S.entries.length) { toast('No entries'); return; }
-  downloadBlob(JSON.stringify({v:2,user:USER_NAME,date:new Date().toISOString(),entries:S.entries},null,2),'application/json',`CustodyLog_${USER_NAME}_Backup_${new Date().toISOString().slice(0,10)}.json`);
-  toast('💾 Backup downloaded');
+  downloadBlob(JSON.stringify({v:3,user:USER_NAME,date:new Date().toISOString(),entries:S.entries},null,2),'application/json',`CustodyLog_${USER_NAME}_Backup_${new Date().toISOString().slice(0,10)}.json`);
+  toast('Backup downloaded');
 }
 
 function importJSON() {
@@ -937,10 +1158,16 @@ function importJSON() {
         if (d.entries && Array.isArray(d.entries)) {
           const ids = new Set(S.entries.map(x=>x.id));
           let added = 0;
-          d.entries.forEach(entry => { if (!ids.has(entry.id)) { S.entries.push(entry); added++; } });
-          LS.save(S.entries); toast(`📥 Imported ${added} entries`); render();
-        } else toast('❌ Invalid file');
-      } catch { toast('❌ Could not read file'); }
+          d.entries.forEach(entry => {
+            if (!ids.has(entry.id)) {
+              // Ensure type field exists for backward compat
+              if (!entry.type) entry.type = 'incident';
+              S.entries.push(entry); added++;
+            }
+          });
+          LS.save(S.entries); toast(`Imported ${added} entries`); render();
+        } else toast('Invalid file', true);
+      } catch { toast('Could not read file', true); }
     };
     r.readAsText(f);
   };
@@ -949,7 +1176,6 @@ function importJSON() {
 
 // Helpers
 function genId() { return Date.now().toString(36)+Math.random().toString(36).slice(2,7); }
-function catLabel(id) { const c=CATS.find(x=>x.id===id); return c?c.label:id; }
 function truncate(s,n) { return s.length>n ? s.slice(0,n)+'…' : s; }
 function esc(s) { return (s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;'); }
 function escH(s) { const d=document.createElement('div');d.textContent=s;return d.innerHTML; }
