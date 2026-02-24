@@ -5,13 +5,13 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
-<meta name="apple-mobile-web-app-title" content="Custody Log">
+<meta name="apple-mobile-web-app-title" content="CustodyLog">
 <meta name="theme-color" content="#0f1117">
 <meta name="description" content="Private custody documentation — incidents and positive moments">
 <link rel="manifest" href="manifest.json">
 <link rel="icon" type="image/png" href="icon-192.png">
 <link rel="apple-touch-icon" sizes="180x180" href="apple-touch-icon.png">
-<title>Custody Log</title>
+<title>CustodyLog</title>
 <style>
 @import url('https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700&display=swap');
 :root {
@@ -36,11 +36,18 @@ input,textarea,select,button{font-family:inherit}
 @keyframes slideLeft{from{transform:translateX(-100%);opacity:0}to{transform:translateX(0);opacity:1}}
 @keyframes slideUp{from{transform:translateY(16px);opacity:0}to{transform:translateY(0);opacity:1}}
 @keyframes shake{0%,100%{transform:translateX(0)}20%,60%{transform:translateX(-8px)}40%,80%{transform:translateX(8px)}}
+@keyframes pulse{0%,100%{opacity:.4}50%{opacity:1}}
+@keyframes spin{to{transform:rotate(360deg)}}
 .fadeIn{animation:fadeIn .25s ease}
 .slideRight{animation:slideRight .3s ease}
 .slideLeft{animation:slideLeft .3s ease}
 .slideUp{animation:slideUp .25s ease}
 .shake{animation:shake .4s ease}
+
+.boot-screen{min-height:100vh;min-height:100dvh;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:20px}
+.boot-screen .logo{font-size:56px;animation:pulse 1.5s ease infinite}
+.boot-screen .spinner{width:24px;height:24px;border:3px solid var(--bdr);border-top-color:var(--ac);border-radius:50%;animation:spin .7s linear infinite}
+.boot-screen p{color:var(--mt);font-size:14px}
 
 .pin-wrap{min-height:100vh;min-height:100dvh;display:flex;flex-direction:column;align-items:center;justify-content:center;padding:calc(40px + var(--sat)) 24px calc(40px + var(--sab));text-align:center}
 .pin-logo{font-size:56px;margin-bottom:16px}
@@ -100,6 +107,9 @@ input,textarea,select,button{font-family:inherit}
 input[type="date"],input[type="time"]{color-scheme:dark}
 .row{display:flex;gap:8px}
 .row>*{flex:1}
+.char-count{font-size:11px;color:var(--mt);text-align:right;margin-top:4px}
+.char-count.near{color:var(--yw)}
+.char-count.over{color:var(--rd)}
 
 .sev-row{display:flex;gap:7px}
 .sev-btn{flex:1;padding:10px 4px;border-radius:var(--rs);border:1px solid var(--bdr);background:var(--s1);font-size:12px;font-weight:600;cursor:pointer;text-align:center;transition:all .15s;color:var(--mt)}
@@ -210,14 +220,13 @@ input[type="date"],input[type="time"]{color-scheme:dark}
 .note-warn{background:var(--ywd);border:1px solid var(--ywb);color:var(--yw)}
 .note-gn{background:var(--gnd);border:1px solid var(--gnb);color:var(--gn)}
 
-.toast{position:fixed;bottom:calc(90px + var(--sab));left:50%;transform:translateX(-50%) translateY(20px);background:var(--gn);color:#fff;padding:12px 24px;border-radius:var(--r);font-size:14px;font-weight:600;z-index:300;opacity:0;transition:all .3s;pointer-events:none;white-space:nowrap}
+.toast{position:fixed;bottom:calc(90px + var(--sab));left:50%;transform:translateX(-50%) translateY(20px);background:var(--gn);color:#fff;padding:12px 24px;border-radius:var(--r);font-size:14px;font-weight:600;z-index:300;opacity:0;transition:all .3s;pointer-events:none;white-space:nowrap;max-width:90vw;overflow:hidden;text-overflow:ellipsis}
 .toast.show{opacity:1;transform:translateX(-50%) translateY(0)}
 .toast.warn{background:var(--yw);color:#1a1a1a}
 
 .media-viewer{position:fixed;inset:0;background:rgba(0,0,0,.95);z-index:400;display:flex;align-items:center;justify-content:center;padding:20px;cursor:pointer}
 .media-viewer img{max-width:100%;max-height:100%;object-fit:contain;border-radius:8px}
 
-/* Onboarding */
 .ob-overlay{position:fixed;inset:0;background:var(--bg);z-index:500;overflow-y:auto;-webkit-overflow-scrolling:touch;padding:calc(40px + var(--sat)) 24px calc(40px + var(--sab))}
 .ob-overlay h1{font-size:28px;font-weight:700;margin-bottom:8px;text-align:center}
 .ob-overlay .ob-sub{text-align:center;color:var(--mt);font-size:15px;margin-bottom:32px;line-height:1.5}
@@ -230,6 +239,16 @@ input[type="date"],input[type="time"]{color-scheme:dark}
 .ob-start{width:100%;padding:18px;border-radius:var(--r);border:none;background:var(--ac);color:#fff;font-size:17px;font-weight:700;cursor:pointer;margin-top:20px;letter-spacing:.3px}
 .ob-start:active{transform:scale(.98);opacity:.9}
 
+.confirm-bg{position:fixed;inset:0;background:rgba(0,0,0,.7);z-index:600;display:flex;align-items:center;justify-content:center;padding:24px;animation:fadeIn .15s ease}
+.confirm-box{background:var(--s1);border:1px solid var(--bdr);border-radius:16px;padding:24px;max-width:340px;width:100%;text-align:center}
+.confirm-box h3{font-size:17px;font-weight:700;margin-bottom:8px}
+.confirm-box p{font-size:14px;color:var(--tx2);line-height:1.5;margin-bottom:20px}
+.confirm-box .btn-row{display:flex;gap:8px}
+.confirm-box .btn-row button{flex:1;padding:13px;border-radius:var(--r);border:none;font-size:14px;font-weight:600;cursor:pointer}
+.confirm-box .cbtn-cancel{background:var(--s2);color:var(--tx)}
+.confirm-box .cbtn-danger{background:var(--rd);color:#fff}
+.confirm-box .cbtn-primary{background:var(--ac);color:#fff}
+
 @media(min-width:500px){.cat-grid{grid-template-columns:1fr 1fr 1fr}}
 @media(min-width:640px){.content,.tabs{max-width:640px;margin-left:auto;margin-right:auto}.stats{grid-template-columns:repeat(3,1fr)}}
 @media(min-width:1024px){.content,.tabs{max-width:720px}}
@@ -237,8 +256,9 @@ input[type="date"],input[type="time"]{color-scheme:dark}
 </head>
 <body>
 
-<div id="app"></div>
+<div id="app"><div class="boot-screen"><div class="logo">🛡️</div><div class="spinner"></div><p>Loading...</p></div></div>
 <div class="toast" id="toast"></div>
+<div id="confirm-root"></div>
 
 <input type="file" id="photoInput" accept="image/*" capture="environment" style="display:none">
 <input type="file" id="videoInput" accept="video/*" capture="environment" style="display:none">
@@ -247,59 +267,60 @@ input[type="date"],input[type="time"]{color-scheme:dark}
 <input type="file" id="importInput" accept=".json" style="display:none">
 
 <script>
-// Custody Log v3 — Incidents + Positive Moments
-const USER_NAME = 'Zev';
-const SP = 'cl_zev';
+// CustodyLog v1.0 — Production Release
+const SP = 'cl_app';
+const OLD_SP = 'cl_zev';
+const DESC_MAX = 5000;
 
 // Incident categories
 const CATS = [
-  { id:'emotional',    icon:'🔴', label:'Emotional Outburst',     g:'behavior' },
-  { id:'threat',       icon:'⚠️', label:'Threats / Intimidation', g:'behavior' },
-  { id:'exchange',     icon:'🔄', label:'Custody Exchange Issue',  g:'custody' },
-  { id:'violation',    icon:'⚖️', label:'Court Order Violation',  g:'custody' },
-  { id:'communication',icon:'💬', label:'Hostile Communication',  g:'comms' },
-  { id:'accusation',   icon:'🚨', label:'False Accusation',       g:'comms' },
-  { id:'boundary',     icon:'🚧', label:'Boundary Violation',     g:'comms' },
-  { id:'alienation',   icon:'💔', label:'Alienation Behavior',    g:'children' },
-  { id:'wellbeing',    icon:'👶', label:"Children's Wellbeing",   g:'children' },
-  { id:'neglect',      icon:'🏠', label:'Neglect / Safety',       g:'children' },
-  { id:'substance',    icon:'🍷', label:'Substance Abuse',        g:'concern' },
-  { id:'financial',    icon:'💰', label:'Financial Issue',         g:'concern' },
-  { id:'harassment',   icon:'📵', label:'Harassment / Stalking',  g:'concern' },
-  { id:'witness',      icon:'👁️', label:'Witness Observation',    g:'docs' },
-  { id:'other',        icon:'📝', label:'Other / General Note',   g:'docs' },
+  { id:'emotional',    icon:'\u{1F534}', label:'Emotional Outburst',     g:'behavior' },
+  { id:'threat',       icon:'\u26A0\uFE0F', label:'Threats / Intimidation', g:'behavior' },
+  { id:'exchange',     icon:'\u{1F504}', label:'Custody Exchange Issue',  g:'custody' },
+  { id:'violation',    icon:'\u2696\uFE0F', label:'Court Order Violation',  g:'custody' },
+  { id:'communication',icon:'\u{1F4AC}', label:'Hostile Communication',  g:'comms' },
+  { id:'accusation',   icon:'\u{1F6A8}', label:'False Accusation',       g:'comms' },
+  { id:'boundary',     icon:'\u{1F6A7}', label:'Boundary Violation',     g:'comms' },
+  { id:'alienation',   icon:'\u{1F494}', label:'Alienation Behavior',    g:'children' },
+  { id:'wellbeing',    icon:'\u{1F476}', label:"Children's Wellbeing",   g:'children' },
+  { id:'neglect',      icon:'\u{1F3E0}', label:'Neglect / Safety',       g:'children' },
+  { id:'substance',    icon:'\u{1F377}', label:'Substance Abuse',        g:'concern' },
+  { id:'financial',    icon:'\u{1F4B0}', label:'Financial Issue',         g:'concern' },
+  { id:'harassment',   icon:'\u{1F4F5}', label:'Harassment / Stalking',  g:'concern' },
+  { id:'witness',      icon:'\u{1F441}\uFE0F', label:'Witness Observation',    g:'docs' },
+  { id:'other',        icon:'\u{1F4DD}', label:'Other / General Note',   g:'docs' },
 ];
 
 const GROUPS = {
-  behavior:'🔴 Behavior & Safety',
-  custody:'⚖️ Custody & Court',
-  comms:'💬 Communication',
-  children:'👶 Children',
-  concern:'⚠️ Concerns',
-  docs:'📋 Documentation'
+  behavior:'\u{1F534} Behavior & Safety',
+  custody:'\u2696\uFE0F Custody & Court',
+  comms:'\u{1F4AC} Communication',
+  children:'\u{1F476} Children',
+  concern:'\u26A0\uFE0F Concerns',
+  docs:'\u{1F4CB} Documentation'
 };
 
 // Positive moment categories
 const PCATS = [
-  { id:'quality_time', icon:'🎯', label:'Quality Time Together',  g:'together' },
-  { id:'activity',     icon:'🎨', label:'Fun Activity / Outing',  g:'together' },
-  { id:'routine',      icon:'🏡', label:'Daily Care & Routine',   g:'together' },
-  { id:'emotional',    icon:'💛', label:'Emotional Support',       g:'together' },
-  { id:'milestone',    icon:'⭐', label:'Milestone / Achievement', g:'growth' },
-  { id:'school',       icon:'📚', label:'School / Education',      g:'growth' },
-  { id:'health',       icon:'🩺', label:'Health & Wellness',       g:'growth' },
-  { id:'coparenting',  icon:'🤝', label:'Co-Parenting Win',        g:'coparent' },
-  { id:'communication',icon:'💬', label:'Positive Communication',  g:'coparent' },
-  { id:'event',        icon:'🎉', label:'Special Event / Holiday', g:'memorable' },
-  { id:'memory',       icon:'📸', label:'Happy Memory',            g:'memorable' },
-  { id:'other_pos',    icon:'✨', label:'Other Positive Note',     g:'memorable' },
+  { id:'quality_time', icon:'\u{1F3AF}', label:'Quality Time Together',  g:'together' },
+  { id:'activity',     icon:'\u{1F3A8}', label:'Fun Activity / Outing',  g:'together' },
+  { id:'routine',      icon:'\u{1F3E1}', label:'Daily Care & Routine',   g:'together' },
+  { id:'emotional',    icon:'\u{1F49B}', label:'Emotional Support',       g:'together' },
+  { id:'milestone',    icon:'\u2B50', label:'Milestone / Achievement', g:'growth' },
+  { id:'school',       icon:'\u{1F4DA}', label:'School / Education',      g:'growth' },
+  { id:'health',       icon:'\u{1FA7A}', label:'Health & Wellness',       g:'growth' },
+  { id:'coparenting',  icon:'\u{1F91D}', label:'Co-Parenting Win',        g:'coparent' },
+  { id:'communication',icon:'\u{1F4AC}', label:'Positive Communication',  g:'coparent' },
+  { id:'event',        icon:'\u{1F389}', label:'Special Event / Holiday', g:'memorable' },
+  { id:'memory',       icon:'\u{1F4F8}', label:'Happy Memory',            g:'memorable' },
+  { id:'other_pos',    icon:'\u2728', label:'Other Positive Note',     g:'memorable' },
 ];
 
 const PGROUPS = {
-  together:'👨‍👧‍👦 Time Together',
-  growth:'⭐ Growth & Development',
-  coparent:'🤝 Co-Parenting',
-  memorable:'🎉 Memorable Moments'
+  together:'\u{1F468}\u200D\u{1F467}\u200D\u{1F466} Time Together',
+  growth:'\u2B50 Growth & Development',
+  coparent:'\u{1F91D} Co-Parenting',
+  memorable:'\u{1F389} Memorable Moments'
 };
 
 const SEVS = [
@@ -309,7 +330,7 @@ const SEVS = [
   {id:'critical',label:'Critical',cls:'s-critical'},
 ];
 
-// IndexedDB — large storage for entries & drafts (hundreds of MB)
+// IndexedDB
 let _db = null;
 function idb() {
   if (_db) return Promise.resolve(_db);
@@ -349,11 +370,33 @@ function idbClear() {
   }));
 }
 
-// Storage — localStorage for tiny settings, IndexedDB for data
+// Try to open old DB for migration
+function idbOld() {
+  return new Promise((resolve, reject) => {
+    const req = indexedDB.open(OLD_SP + '_db', 1);
+    req.onupgradeneeded = () => { req.result.close(); resolve(null); };
+    req.onsuccess = () => resolve(req.result);
+    req.onerror = () => resolve(null);
+  });
+}
+function idbOldGet(db, key) {
+  return new Promise((res) => {
+    try {
+      const r = db.transaction('kv','readonly').objectStore('kv').get(key);
+      r.onsuccess = () => res(r.result);
+      r.onerror = () => res(null);
+    } catch { res(null); }
+  });
+}
+
+// Storage helpers
 let _cachedDraft = null;
 let _storageQuota = 0;
+let _lastBackup = null;
+let _toastTimer = null;
+
 const LS = {
-  save: (e) => { idbSet('entries', e).catch(err => toast('Storage error!', true)); },
+  save: (e) => { idbSet('entries', e).catch(() => toast('Storage error — export a backup now!', true)); },
   pin: () => localStorage.getItem(SP+'_pin'),
   setPin: (p) => localStorage.setItem(SP+'_pin', p),
   rmPin: () => localStorage.removeItem(SP+'_pin'),
@@ -361,6 +404,8 @@ const LS = {
   setSeen: () => localStorage.setItem(SP+'_seen', '1'),
   onboarded: () => localStorage.getItem(SP+'_onboarded') === '1',
   setOnboarded: () => localStorage.setItem(SP+'_onboarded', '1'),
+  lastBackup: () => localStorage.getItem(SP+'_lastBackup'),
+  setLastBackup: () => { const t = new Date().toISOString(); localStorage.setItem(SP+'_lastBackup', t); _lastBackup = t; },
   saveDraft: (d) => { _cachedDraft = d; idbSet('draft', d).catch(()=>{}); },
   loadDraft: () => _cachedDraft,
   clearDraft: () => { _cachedDraft = null; idbDel('draft').catch(()=>{}); },
@@ -372,14 +417,40 @@ let S = {
   screen: 'boot',
   pinDigits: [], pinPhase: 'first', pinFirst: [], pinError: '',
   tab: 'new', page: 'categories',
-  entryType: 'incident', // 'incident' or 'positive'
+  entryType: 'incident',
   cat: '', severity: 'medium', desc: '', date: '', time: '',
   location: '', witnesses: '', kidsThere: false, kidsNames: '',
   media: [], editId: null,
-  filter: 'all', search: '', logTypeFilter: 'all', // 'all', 'incidents', 'positive'
+  filter: 'all', search: '', logTypeFilter: 'all',
   viewing: null,
   entries: [],
 };
+
+// Debounced search
+let _searchTimer = null;
+function onSearchInput(val) {
+  S.search = val;
+  if (_searchTimer) clearTimeout(_searchTimer);
+  _searchTimer = setTimeout(() => render(), 200);
+}
+
+// Confirm dialog (replaces browser confirm)
+function showConfirm(title, message, onYes, dangerLabel, cancelLabel) {
+  const root = document.getElementById('confirm-root');
+  root.innerHTML = `<div class="confirm-bg" onclick="dismissConfirm(event)">
+    <div class="confirm-box">
+      <h3>${esc(title)}</h3>
+      <p>${esc(message)}</p>
+      <div class="btn-row">
+        <button class="cbtn-cancel" onclick="closeConfirm()">${cancelLabel || 'Cancel'}</button>
+        <button class="${dangerLabel ? 'cbtn-danger' : 'cbtn-primary'}" id="confirmYes">${dangerLabel || 'Confirm'}</button>
+      </div>
+    </div>
+  </div>`;
+  document.getElementById('confirmYes').onclick = () => { closeConfirm(); onYes(); };
+}
+function closeConfirm() { document.getElementById('confirm-root').innerHTML = ''; }
+function dismissConfirm(ev) { if (ev.target.classList.contains('confirm-bg')) closeConfirm(); }
 
 // Draft auto-save
 function saveDraft() {
@@ -400,20 +471,60 @@ function loadDraft() {
   if (S.cat) S.page = 'form';
 }
 
-// Storage usage — calculated from in-memory data
+// Storage usage
 function storageUsed() {
   try { return JSON.stringify(S.entries).length * 2; } catch { return 0; }
 }
 function fmtBytes(b){if(b<1024)return b+' B';if(b<1048576)return(b/1024).toFixed(1)+' KB';return(b/1048576).toFixed(1)+' MB';}
 
-// Helpers to determine entry type
 function isPositive(entry) { return entry.type === 'positive'; }
-function entryTypeLabel(entry) { return isPositive(entry) ? 'Positive' : (entry.severity || 'medium'); }
 
-// Init — async to load from IndexedDB
-async function boot() {
-  // Load entries from IndexedDB
+// Migrate data from old storage prefix
+async function migrateFromOld() {
+  let migrated = false;
+  // Migrate localStorage keys
+  const oldKeys = ['_pin','_seen','_onboarded','_entries','_draft','_lastBackup'];
+  for (const suffix of oldKeys) {
+    const oldVal = localStorage.getItem(OLD_SP + suffix);
+    if (oldVal !== null && localStorage.getItem(SP + suffix) === null) {
+      localStorage.setItem(SP + suffix, oldVal);
+      localStorage.removeItem(OLD_SP + suffix);
+      migrated = true;
+    }
+  }
+  // Migrate IndexedDB
   try {
+    const oldDb = await idbOld();
+    if (oldDb) {
+      const oldEntries = await idbOldGet(oldDb, 'entries');
+      if (oldEntries) {
+        const current = await idbGet('entries');
+        if (!current) {
+          await idbSet('entries', oldEntries);
+          migrated = true;
+        }
+      }
+      const oldDraft = await idbOldGet(oldDb, 'draft');
+      if (oldDraft) {
+        const currentDraft = await idbGet('draft');
+        if (!currentDraft) {
+          await idbSet('draft', oldDraft);
+          migrated = true;
+        }
+      }
+      oldDb.close();
+    }
+  } catch {}
+  return migrated;
+}
+
+// Boot
+async function boot() {
+  try {
+    // Migrate from old storage prefix first
+    await migrateFromOld();
+
+    // Load entries from IndexedDB
     let entries = await idbGet('entries');
     // Migrate from localStorage if IndexedDB is empty
     if (!entries) {
@@ -423,10 +534,8 @@ async function boot() {
       }
     }
     S.entries = entries || [];
-  } catch { S.entries = []; }
 
-  // Load draft from IndexedDB
-  try {
+    // Load draft from IndexedDB
     let draft = await idbGet('draft');
     if (!draft) {
       const oldDraft = localStorage.getItem(SP+'_draft');
@@ -435,61 +544,100 @@ async function boot() {
       }
     }
     _cachedDraft = draft || null;
-  } catch { _cachedDraft = null; }
 
-  // Get storage quota estimate
-  try {
-    if (navigator.storage && navigator.storage.estimate) {
-      const est = await navigator.storage.estimate();
-      _storageQuota = est.quota || 0;
+    // Get storage quota estimate
+    try {
+      if (navigator.storage && navigator.storage.estimate) {
+        const est = await navigator.storage.estimate();
+        _storageQuota = est.quota || 0;
+      }
+    } catch {}
+
+    _lastBackup = LS.lastBackup();
+
+    const pin = LS.pin();
+    if (pin) S.screen = 'pin_enter';
+    else if (!LS.seen()) S.screen = 'pin_create';
+    else if (!LS.onboarded()) S.screen = 'onboarding';
+    else S.screen = 'app';
+    loadDraft();
+    render();
+
+    // Check backup reminder after render
+    setTimeout(checkBackupReminder, 1000);
+  } catch (err) {
+    document.getElementById('app').innerHTML = `<div class="boot-screen">
+      <div class="logo">\u{1F6E1}\uFE0F</div>
+      <h1 style="font-size:20px;margin-bottom:8px">Failed to Load</h1>
+      <p style="color:var(--mt);max-width:280px;text-align:center;line-height:1.5">CustodyLog could not access storage. Please make sure your browser allows site data storage, then reload.</p>
+      <button onclick="location.reload()" style="margin-top:16px;padding:14px 28px;border-radius:12px;border:none;background:var(--ac);color:#fff;font-size:15px;font-weight:600;cursor:pointer">Reload</button>
+    </div>`;
+  }
+}
+
+// Backup reminder — warn if >7 days since last backup or never backed up with 10+ entries
+function checkBackupReminder() {
+  if (S.screen !== 'app') return;
+  if (S.entries.length < 5) return;
+  const last = _lastBackup;
+  if (!last && S.entries.length >= 10) {
+    toast('\u{1F4E6} You have ' + S.entries.length + ' entries — export a backup!', true);
+    return;
+  }
+  if (last) {
+    const days = (Date.now() - new Date(last).getTime()) / 86400000;
+    if (days > 7) {
+      toast('\u{1F4E6} Last backup was ' + Math.floor(days) + ' days ago — back up soon!', true);
     }
-  } catch {}
-
-  const pin = LS.pin();
-  if (pin) S.screen = 'pin_enter';
-  else if (!LS.seen()) S.screen = 'pin_create';
-  else if (!LS.onboarded()) S.screen = 'onboarding';
-  else S.screen = 'app';
-  loadDraft();
-  render();
+  }
 }
 
 // Render
 function render() {
   const app = document.getElementById('app');
-  if (S.screen === 'pin_create') { app.innerHTML = pinCreateHTML(); return; }
-  if (S.screen === 'pin_enter')  { app.innerHTML = pinEnterHTML();  return; }
-  if (S.screen === 'onboarding') { app.innerHTML = onboardingHTML(); return; }
-  app.innerHTML = appHTML();
+  try {
+    if (S.screen === 'boot') return;
+    if (S.screen === 'pin_create') { app.innerHTML = pinCreateHTML(); return; }
+    if (S.screen === 'pin_enter')  { app.innerHTML = pinEnterHTML();  return; }
+    if (S.screen === 'onboarding') { app.innerHTML = onboardingHTML(); return; }
+    app.innerHTML = appHTML();
+  } catch (err) {
+    app.innerHTML = `<div class="boot-screen">
+      <div class="logo">\u26A0\uFE0F</div>
+      <h1 style="font-size:18px;margin-bottom:8px">Something went wrong</h1>
+      <p style="color:var(--mt);max-width:280px;text-align:center;line-height:1.5">${esc(err.message || 'Unknown error')}</p>
+      <button onclick="S.tab='new';S.page='categories';S.viewing=null;render()" style="margin-top:16px;padding:12px 24px;border-radius:12px;border:none;background:var(--ac);color:#fff;font-size:14px;font-weight:600;cursor:pointer">Go Home</button>
+    </div>`;
+  }
 }
 
 // Onboarding
 function onboardingHTML() {
   return `<div class="ob-overlay fadeIn">
     <div style="max-width:520px;margin:0 auto">
-      <div style="font-size:56px;text-align:center;margin-bottom:12px">🛡️</div>
-      <h1>Welcome to Custody Log</h1>
+      <div style="font-size:56px;text-align:center;margin-bottom:12px">\u{1F6E1}\uFE0F</div>
+      <h1>Welcome to CustodyLog</h1>
       <p class="ob-sub">Your private, secure documentation tool for custody matters.</p>
 
       <div class="ob-section">
-        <h2>📋 What This App Does</h2>
-        <p>Custody Log helps you maintain a detailed, timestamped record of <strong>both incidents and positive interactions</strong> related to your custody situation. All data is stored privately on your device — nothing is ever sent to any server.</p>
+        <h2>\u{1F4CB} What This App Does</h2>
+        <p>CustodyLog helps you maintain a detailed, timestamped record of <strong>both incidents and positive interactions</strong> related to your custody situation. All data is stored privately on your device \u2014 nothing is ever sent to any server.</p>
       </div>
 
       <div class="ob-section">
-        <h2>🔴 Logging Incidents</h2>
+        <h2>\u{1F534} Logging Incidents</h2>
         <p>Document concerning behavior, court order violations, communication issues, and other incidents as they happen.</p>
         <ul>
-          <li><strong>Be factual and specific</strong> — describe what you saw, heard, or received</li>
-          <li><strong>Avoid opinions</strong> — let the facts speak for themselves</li>
-          <li><strong>Attach evidence</strong> — photos, screenshots, or recordings</li>
+          <li><strong>Be factual and specific</strong> \u2014 describe what you saw, heard, or received</li>
+          <li><strong>Avoid opinions</strong> \u2014 let the facts speak for themselves</li>
+          <li><strong>Attach evidence</strong> \u2014 photos, screenshots, or recordings</li>
           <li><strong>Note witnesses</strong> and whether children were present</li>
           <li><strong>Rate severity</strong> so your attorney can prioritize</li>
         </ul>
       </div>
 
       <div class="ob-section">
-        <h2>💚 Logging Positive Moments</h2>
+        <h2>\u{1F49A} Logging Positive Moments</h2>
         <p>Record quality time, milestones, and positive co-parenting interactions. This is just as important as logging incidents.</p>
         <ul>
           <li>Shows a <strong>pattern of active, engaged parenting</strong></li>
@@ -500,16 +648,16 @@ function onboardingHTML() {
       </div>
 
       <div class="ob-section">
-        <h2>📅 Backdating Entries</h2>
-        <p>You can change the date and time on any entry to log something that happened in the past. The app automatically records <strong>when the entry was actually created</strong> for credibility — both dates appear in reports.</p>
+        <h2>\u{1F4C5} Backdating Entries</h2>
+        <p>You can change the date and time on any entry to log something that happened in the past. The app automatically records <strong>when the entry was actually created</strong> for credibility \u2014 both dates appear in reports.</p>
       </div>
 
       <div class="ob-section">
-        <h2>🔒 Privacy & Backups</h2>
+        <h2>\u{1F512} Privacy & Backups</h2>
         <ul>
-          <li>All data stays on <strong>your device</strong> — no cloud, no servers</li>
+          <li>All data stays on <strong>your device</strong> \u2014 no cloud, no servers</li>
           <li>Set a PIN to protect your entries from prying eyes</li>
-          <li><strong>Export backups regularly</strong> — clearing your browser data will delete everything</li>
+          <li><strong>Export backups regularly</strong> \u2014 clearing your browser data will delete everything</li>
           <li>Generate attorney-ready PDF reports anytime</li>
         </ul>
         <p class="ob-tip">This is not legal advice. Always consult with your attorney about your specific situation.</p>
@@ -528,20 +676,20 @@ function pinCreateHTML() {
   const title = S.pinPhase === 'first' ? 'Create a PIN' : 'Confirm Your PIN';
   const sub = S.pinPhase === 'first' ? 'Choose a 4-digit PIN to protect your entries.' : 'Enter your PIN again to confirm.';
   return `<div class="pin-wrap fadeIn">
-    <div class="pin-logo">🛡️</div>
+    <div class="pin-logo">\u{1F6E1}\uFE0F</div>
     <h1>${title}</h1>
     <p class="sub">${sub}</p>
     ${pinDotsHTML()}
     ${pinPadHTML()}
     <div class="pin-msg">${S.pinError}</div>
-    <button class="pin-skip" onclick="skipPin()">Skip — I'll set one later</button>
+    <button class="pin-skip" onclick="skipPin()">Skip \u2014 I'll set one later</button>
   </div>`;
 }
 
 function pinEnterHTML() {
   return `<div class="pin-wrap fadeIn">
-    <div class="pin-logo">🔒</div>
-    <h1>${USER_NAME}'s Custody Log</h1>
+    <div class="pin-logo">\u{1F512}</div>
+    <h1>CustodyLog</h1>
     <p class="sub">Enter your PIN to unlock</p>
     ${pinDotsHTML()}
     ${pinPadHTML()}
@@ -561,11 +709,11 @@ function pinDotsHTML() {
 }
 
 function pinPadHTML() {
-  const keys = [1,2,3,4,5,6,7,8,9,'','0','⌫'];
+  const keys = [1,2,3,4,5,6,7,8,9,'','0','\u232B'];
   let h = '<div class="pin-pad">';
   keys.forEach(k => {
     if (k === '') h += '<div class="pin-key empty"></div>';
-    else if (k === '⌫') h += `<div class="pin-key fn" onclick="pinBack()">⌫</div>`;
+    else if (k === '\u232B') h += `<div class="pin-key fn" onclick="pinBack()">\u232B</div>`;
     else h += `<div class="pin-key" onclick="pinTap(${k})">${k}</div>`;
   });
   return h + '</div>';
@@ -594,7 +742,7 @@ function handlePinCreate() {
     if (code === S.pinFirst.join('')) {
       LS.setPin(code); LS.setSeen(); S.pinDigits = [];
       if (!LS.onboarded()) { S.screen = 'onboarding'; }
-      else { S.screen = 'app'; toast('🔒 PIN set successfully'); }
+      else { S.screen = 'app'; toast('\u{1F512} PIN set successfully'); }
       render();
     } else {
       S.pinError = 'PINs don\'t match. Try again.';
@@ -622,13 +770,14 @@ function skipPin() {
 }
 
 function resetAll() {
-  if (!confirm('This will delete ALL data and reset the app. Are you sure?')) return;
-  const keys=[];
-  for(let i=0;i<localStorage.length;i++){const k=localStorage.key(i);if(k&&k.startsWith(SP))keys.push(k);}
-  keys.forEach(k=>localStorage.removeItem(k));
-  idbClear().catch(()=>{});
-  S.entries = []; _cachedDraft = null; S.pinDigits = []; S.screen = 'pin_create'; S.pinPhase = 'first';
-  toast('App reset'); render();
+  showConfirm('Reset App?', 'This will delete ALL data and reset the app. This cannot be undone.', () => {
+    const keys=[];
+    for(let i=0;i<localStorage.length;i++){const k=localStorage.key(i);if(k&&(k.startsWith(SP)||k.startsWith(OLD_SP)))keys.push(k);}
+    keys.forEach(k=>localStorage.removeItem(k));
+    idbClear().catch(()=>{});
+    S.entries = []; _cachedDraft = null; S.pinDigits = []; S.screen = 'pin_create'; S.pinPhase = 'first';
+    toast('App reset'); render();
+  }, 'Delete Everything');
 }
 
 // APP
@@ -643,10 +792,10 @@ function appHTML() {
 
 function headerHTML() {
   return `<div class="header">
-    <h1><span>🛡️</span> ${USER_NAME}'s Custody Log</h1>
+    <h1><span>\u{1F6E1}\uFE0F</span> CustodyLog</h1>
     <div class="hdr-btns">
       <button class="ibtn" onclick="showOnboarding()" title="Help">?</button>
-      <button class="ibtn" onclick="lockApp()" title="Lock">🔒</button>
+      <button class="ibtn" onclick="lockApp()" title="Lock">\u{1F512}</button>
     </div>
   </div>`;
 }
@@ -654,7 +803,7 @@ function headerHTML() {
 function tabsHTML() {
   const draft = LS.hasDraft() && !S.editId;
   const tt = [
-    {id:'new', label: S.page==='form' ? '← Back' : (draft ? '+ New 📝' : '+ New Entry')},
+    {id:'new', label: S.page==='form' ? '\u2190 Back' : (draft ? '+ New \u{1F4DD}' : '+ New Entry')},
     {id:'log', label:`Log (${S.entries.length})`},
     {id:'export', label:'Export'},
   ];
@@ -670,20 +819,28 @@ function setTab(t) {
   render();
 }
 
-// Categories — with type switcher
+// Categories
 function categoriesHTML() {
   let h = '';
   if (!LS.pin()) {
-    h += `<div class="note note-info"><span class="ni">🔒</span><span>Your data is stored only on this device. Tap the lock icon to set a PIN.</span></div>`;
+    h += `<div class="note note-info"><span class="ni">\u{1F512}</span><span>Your data is stored only on this device. Tap the lock icon to set a PIN.</span></div>`;
+  }
+
+  // Storage warning
+  const used = storageUsed();
+  const quota = _storageQuota || 500*1024*1024;
+  const pct = Math.round(used/quota*100);
+  if (pct > 80) {
+    h += `<div class="note note-warn"><span class="ni">\u26A0\uFE0F</span><span>Storage is ${pct}% full. Export a backup and consider removing old entries with large attachments.</span></div>`;
   }
 
   // Type switcher
   h += `<div class="type-switch">
     <button class="type-btn t-incident ${S.entryType==='incident'?'on':''}" onclick="S.entryType='incident';render();">
-      <span class="ti">📋</span>Log Incident
+      <span class="ti">\u{1F4CB}</span>Log Incident
     </button>
     <button class="type-btn t-positive ${S.entryType==='positive'?'on':''}" onclick="S.entryType='positive';render();">
-      <span class="ti">💚</span>Log Positive Moment
+      <span class="ti">\u{1F49A}</span>Log Positive Moment
     </button>
   </div>`;
 
@@ -718,7 +875,6 @@ function pickCat(id, type) {
   saveDraft(); render(); window.scrollTo(0, 0);
 }
 
-// Find category in either list
 function findCat(id, type) {
   if (type === 'positive') return PCATS.find(c => c.id === id);
   return CATS.find(c => c.id === id);
@@ -729,7 +885,7 @@ function catLabel(id, type) {
   return c ? c.label : id;
 }
 
-// Form — adapts for incident vs positive
+// Form
 function formHTML() {
   const isPos = S.entryType === 'positive';
   const cat = findCat(S.cat, S.entryType);
@@ -737,14 +893,16 @@ function formHTML() {
     ? 'Describe what happened. What did you do together? How did the kids react? Include details that paint a picture.'
     : 'Describe exactly what was said or done. Stick to what you saw, heard, or received. Avoid opinions \u2014 let the facts speak.';
   const descLabel = isPos ? 'What happened? (Be descriptive)' : 'What happened? (Be factual & specific)';
+  const descLen = S.desc.length;
+  const charClass = descLen > DESC_MAX ? 'over' : descLen > DESC_MAX * 0.9 ? 'near' : '';
 
   return `<div class="form-page slideRight">
     <div class="back-bar" onclick="S.page='categories';render();">
-      <span class="arrow">←</span>
+      <span class="arrow">\u2190</span>
       <span class="cat-tag">${cat ? cat.icon : ''} ${cat ? cat.label : ''}</span>
       ${isPos ? '<span class="esev sev-positive" style="margin-left:8px">Positive</span>' : ''}
     </div>
-    ${S.editId ? `<div class="note note-warn"><span class="ni">✏️</span><span>Editing existing entry</span></div>` : ''}
+    ${S.editId ? `<div class="note note-warn"><span class="ni">\u270F\uFE0F</span><span>Editing existing entry</span></div>` : ''}
     ${!isPos ? `<div class="fgroup">
       <label class="flabel">Severity</label>
       <div class="sev-row">
@@ -760,31 +918,32 @@ function formHTML() {
     </div>
     <div class="fgroup">
       <label class="flabel">${descLabel}</label>
-      <textarea class="ftextarea" placeholder="${descPlaceholder}"
-        oninput="S.desc=this.value;saveDraft()">${S.desc}</textarea>
+      <textarea class="ftextarea" placeholder="${descPlaceholder}" maxlength="${DESC_MAX}"
+        oninput="S.desc=this.value;saveDraft();updateCharCount(this)">${esc(S.desc)}</textarea>
+      <div class="char-count ${charClass}" id="charCount">${descLen > 0 ? descLen + ' / ' + DESC_MAX : ''}</div>
     </div>
     <div class="fgroup">
       <label class="flabel">Location (optional)</label>
-      <input type="text" class="finput" placeholder="${isPos ? 'Where were you?' : 'Where did this happen?'}" value="${esc(S.location)}" oninput="S.location=this.value;saveDraft()">
+      <input type="text" class="finput" placeholder="${isPos ? 'Where were you?' : 'Where did this happen?'}" value="${esc(S.location)}" maxlength="200" oninput="S.location=this.value;saveDraft()">
     </div>
     ${!isPos ? `<div class="fgroup">
       <label class="flabel">Witnesses (optional)</label>
-      <input type="text" class="finput" placeholder="Names of anyone who saw or heard" value="${esc(S.witnesses)}" oninput="S.witnesses=this.value;saveDraft()">
+      <input type="text" class="finput" placeholder="Names of anyone who saw or heard" value="${esc(S.witnesses)}" maxlength="300" oninput="S.witnesses=this.value;saveDraft()">
     </div>` : ''}
     <div class="chk-row" onclick="S.kidsThere=!S.kidsThere;saveDraft();render();">
       <input type="checkbox" ${S.kidsThere?'checked':''} tabindex="-1">
       <label>${isPos ? 'Children were with me' : 'Children were present / involved'}</label>
     </div>
     ${S.kidsThere ? `<div class="fgroup" style="margin-top:0">
-      <input type="text" class="finput" placeholder="Which children? (names/ages)" value="${esc(S.kidsNames)}" oninput="S.kidsNames=this.value;saveDraft()">
+      <input type="text" class="finput" placeholder="Which children? (names/ages)" value="${esc(S.kidsNames)}" maxlength="200" oninput="S.kidsNames=this.value;saveDraft()">
     </div>` : ''}
     <div class="media-section">
       <label class="flabel">${isPos ? 'Photos & Memories (optional)' : 'Attachments (optional)'}</label>
       <div class="media-btns">
-        <button class="media-btn" onclick="addMedia('photo')"><span class="mi">📷</span> Photo</button>
-        <button class="media-btn" onclick="addMedia('video')"><span class="mi">🎥</span> Video</button>
-        ${!isPos ? `<button class="media-btn" onclick="addMedia('audio')"><span class="mi">🎙️</span> Audio</button>` : ''}
-        <button class="media-btn" onclick="addMedia('file')"><span class="mi">📎</span> File</button>
+        <button class="media-btn" onclick="addMedia('photo')"><span class="mi">\u{1F4F7}</span> Photo</button>
+        <button class="media-btn" onclick="addMedia('video')"><span class="mi">\u{1F3A5}</span> Video</button>
+        ${!isPos ? `<button class="media-btn" onclick="addMedia('audio')"><span class="mi">\u{1F399}\uFE0F</span> Audio</button>` : ''}
+        <button class="media-btn" onclick="addMedia('file')"><span class="mi">\u{1F4CE}</span> File</button>
       </div>
       ${S.media.length ? `<div class="media-list">
         ${S.media.map((m, i) => `<div class="media-item slideUp">
@@ -793,14 +952,22 @@ function formHTML() {
             <div class="mname">${esc(m.name)}</div>
             <div class="msize">${fmtSize(m.size)}</div>
           </div>
-          <button class="mrem" onclick="removeMedia(${i})">×</button>
+          <button class="mrem" onclick="removeMedia(${i})">\u00D7</button>
         </div>`).join('')}
       </div>` : ''}
     </div>
-    <button class="pbtn${isPos?' pbtn-gn':''}" onclick="saveEntry()" ${!S.desc.trim()?'disabled':''}>${S.editId ? '💾 Update Entry' : (isPos ? '💚 Save Positive Moment' : '💾 Save Entry')}</button>
+    <button class="pbtn${isPos?' pbtn-gn':''}" onclick="saveEntry()" ${!S.desc.trim()?'disabled':''}>${S.editId ? '\u{1F4BE} Update Entry' : (isPos ? '\u{1F49A} Save Positive Moment' : '\u{1F4BE} Save Entry')}</button>
     ${S.editId ? `<button class="sbtn" onclick="cancelEdit()">Cancel</button>` : ''}
     ${!S.editId && (S.desc || S.media.length) ? `<button class="sbtn" style="color:var(--rd);border-color:var(--rdb)" onclick="clearForm()">Clear Form</button>` : ''}
   </div>`;
+}
+
+function updateCharCount(el) {
+  const cc = document.getElementById('charCount');
+  if (!cc) return;
+  const len = el.value.length;
+  cc.textContent = len > 0 ? len + ' / ' + DESC_MAX : '';
+  cc.className = 'char-count' + (len > DESC_MAX ? ' over' : len > DESC_MAX * 0.9 ? ' near' : '');
 }
 
 // Media
@@ -848,19 +1015,24 @@ function addMedia(type) {
         S.media.push({ name: file.name, type: file.type, size: file.size, data: ev.target.result });
         saveDraft(); render(); toast('File attached');
       };
+      reader.onerror = () => toast('Could not read file', true);
       reader.readAsDataURL(file);
     }
   };
   el.click();
 }
 
-function removeMedia(i) { S.media.splice(i, 1); saveDraft(); render(); }
+function removeMedia(i) {
+  showConfirm('Remove Attachment?', 'Remove "' + (S.media[i] ? S.media[i].name : 'file') + '" from this entry?', () => {
+    S.media.splice(i, 1); saveDraft(); render();
+  }, 'Remove');
+}
 
 function mediaThumbnail(m) {
   if (m.type.startsWith('image/')) return `<img src="${m.data}" alt="">`;
-  if (m.type.startsWith('video/')) return '🎥';
-  if (m.type.startsWith('audio/')) return '🎙️';
-  return '📎';
+  if (m.type.startsWith('video/')) return '\u{1F3A5}';
+  if (m.type.startsWith('audio/')) return '\u{1F399}\uFE0F';
+  return '\u{1F4CE}';
 }
 
 function fmtSize(b) {
@@ -886,6 +1058,7 @@ function openMedia(entryId, mediaIdx) {
 // Save
 function saveEntry() {
   if (!S.desc.trim() || !S.cat) return;
+  if (S.desc.length > DESC_MAX) { toast('Description is too long (' + S.desc.length + '/' + DESC_MAX + ')', true); return; }
   const isEdit = !!S.editId;
   const isPos = S.entryType === 'positive';
   const n = nowDT();
@@ -911,7 +1084,7 @@ function saveEntry() {
 
   LS.save(S.entries);
   LS.clearDraft();
-  toast(isEdit ? 'Entry updated' : (isPos ? '💚 Positive moment saved' : 'Entry saved'));
+  toast(isEdit ? 'Entry updated' : (isPos ? '\u{1F49A} Positive moment saved' : 'Entry saved'));
   resetForm();
   S.tab = 'log'; S.page = 'categories';
   render();
@@ -924,8 +1097,9 @@ function resetForm() {
 }
 
 function clearForm() {
-  if (!confirm('Clear this form?')) return;
-  LS.clearDraft(); resetForm(); S.page='categories'; render();
+  showConfirm('Clear Form?', 'Discard everything you\'ve entered so far?', () => {
+    LS.clearDraft(); resetForm(); S.page='categories'; render();
+  }, 'Clear');
 }
 
 function cancelEdit() { LS.clearDraft(); resetForm(); S.page='categories'; render(); }
@@ -934,7 +1108,6 @@ function cancelEdit() { LS.clearDraft(); resetForm(); S.page='categories'; rende
 function logHTML() {
   let list = [...S.entries].sort((a,b) => new Date(b.date+'T'+b.time) - new Date(a.date+'T'+a.time));
 
-  // Type filter
   if (S.logTypeFilter === 'incidents') list = list.filter(e => !isPositive(e));
   if (S.logTypeFilter === 'positive') list = list.filter(e => isPositive(e));
 
@@ -949,13 +1122,13 @@ function logHTML() {
   const usedCats = [...new Set(list.map(e => e.category))];
 
   return `
-    <div class="search-bar"><span class="si">🔍</span>
-      <input type="text" placeholder="Search entries..." value="${esc(S.search)}" oninput="S.search=this.value;render();">
+    <div class="search-bar"><span class="si">\u{1F50D}</span>
+      <input type="text" placeholder="Search entries..." value="${esc(S.search)}" oninput="onSearchInput(this.value)">
     </div>
     <div class="fbar">
       <button class="fchip ${S.logTypeFilter==='all'?'on':''}" onclick="S.logTypeFilter='all';S.filter='all';render();">All (${S.entries.length})</button>
-      <button class="fchip ${S.logTypeFilter==='incidents'?'on':''}" onclick="S.logTypeFilter='incidents';S.filter='all';render();">📋 Incidents (${totalIncidents})</button>
-      <button class="fchip fchip-gn ${S.logTypeFilter==='positive'?'on':''}" onclick="S.logTypeFilter='positive';S.filter='all';render();">💚 Positive (${totalPositive})</button>
+      <button class="fchip ${S.logTypeFilter==='incidents'?'on':''}" onclick="S.logTypeFilter='incidents';S.filter='all';render();">\u{1F4CB} Incidents (${totalIncidents})</button>
+      <button class="fchip fchip-gn ${S.logTypeFilter==='positive'?'on':''}" onclick="S.logTypeFilter='positive';S.filter='all';render();">\u{1F49A} Positive (${totalPositive})</button>
     </div>
     ${usedCats.length > 1 ? `<div class="fbar">
       <button class="fchip ${S.filter==='all'?'on':''}" onclick="S.filter='all';render();">All</button>
@@ -966,7 +1139,7 @@ function logHTML() {
         return `<button class="fchip ${S.filter===cid?'on':''}" onclick="S.filter='${cid}';render();">${c?c.icon:''} ${c?c.label:cid} (${cnt})</button>`;
       }).join('')}
     </div>` : ''}
-    ${list.length === 0 ? `<div class="empty"><div class="ei">${S.logTypeFilter==='positive'?'💚':'📋'}</div>
+    ${list.length === 0 ? `<div class="empty"><div class="ei">${S.logTypeFilter==='positive'?'\u{1F49A}':'\u{1F4CB}'}</div>
       <h3>${S.entries.length===0?'No entries yet':'No matching entries'}</h3>
       <p>${S.entries.length===0?'Tap "+ New Entry" to log your first entry':'Try adjusting your search or filter'}</p></div>`
     : list.map(e => entryCardHTML(e)).join('')}`;
@@ -979,14 +1152,14 @@ function entryCardHTML(e) {
   const sevColor = pos ? 'var(--gn)' : (e.severity==='critical'||e.severity==='high'?'var(--rd)':e.severity==='medium'?'var(--yw)':'var(--gn)');
   return `<div class="ecard${pos?' ecard-pos':''}" onclick="viewEntry('${e.id}')">
     <div class="ehead">
-      <div class="ecat" style="color:${sevColor}">${c?c.icon:'📝'} ${c?c.label:e.category}</div>
+      <div class="ecat" style="color:${sevColor}">${c?c.icon:'\u{1F4DD}'} ${c?c.label:e.category}</div>
       <span class="esev sev-${pos?'positive':e.severity}">${pos?'Positive':e.severity}</span>
     </div>
     <div class="edesc">${esc(truncate(e.description, 150))}</div>
     <div class="emeta">
-      <span>📅 ${fmtDate(e.date)}</span>
-      <span>🕐 ${fmtTime(e.time)}</span>
-      ${e.location?`<span>📍 ${esc(truncate(e.location,25))}</span>`:''}
+      <span>\u{1F4C5} ${fmtDate(e.date)}</span>
+      <span>\u{1F550} ${fmtTime(e.time)}</span>
+      ${e.location?`<span>\u{1F4CD} ${esc(truncate(e.location,25))}</span>`:''}
     </div>
     ${(e.kidsThere || e.witnesses || hasMed) ? `<div class="ebadges">
       ${e.kidsThere?`<span class="badge ${pos?'badge-gn':'badge-rd'}">${pos?'Kids With Me':'Children Present'}</span>`:''}
@@ -1018,21 +1191,21 @@ function modalHTML() {
     ${e.location?`<div class="detail-row"><div class="dl">Location</div><div class="dv">${esc(e.location)}</div></div>`:''}
     <div class="detail-row"><div class="dl">Description</div><div class="dv">${esc(e.description)}</div></div>
     ${e.witnesses && !pos?`<div class="detail-row"><div class="dl">Witnesses</div><div class="dv">${esc(e.witnesses)}</div></div>`:''}
-    ${e.kidsThere?`<div class="detail-row"><div class="dl">${pos?'Children With Me':'Children Present'}</div><div class="dv">Yes${e.kidsNames?' — '+esc(e.kidsNames):''}</div></div>`:''}
+    ${e.kidsThere?`<div class="detail-row"><div class="dl">${pos?'Children With Me':'Children Present'}</div><div class="dv">Yes${e.kidsNames?' \u2014 '+esc(e.kidsNames):''}</div></div>`:''}
     ${hasMed ? `<div class="detail-row"><div class="dl">${pos?'Photos':'Attachments'} (${e.media.length})</div>
       <div class="modal-media">${e.media.map((m,i) => {
         if (m.type.startsWith('image/')) return `<div class="mm" onclick="event.stopPropagation();openMedia('${e.id}',${i})"><img src="${m.data}"></div>`;
         if (m.type.startsWith('video/')) return `<div class="mm"><video src="${m.data}" controls style="width:100%;height:100%;object-fit:cover"></video></div>`;
         if (m.type.startsWith('audio/')) return `<div class="mm" style="width:140px"><audio src="${m.data}" controls style="width:100%"></audio></div>`;
-        return `<div class="mm">📎</div>`;
+        return `<div class="mm">\u{1F4CE}</div>`;
       }).join('')}</div></div>` : ''}
     <div class="detail-id">
       ID: ${e.id}<br>
       Logged: ${createdDate}${!datesMatch ? ' (backdated entry)' : ''}${e.updatedAt && e.updatedAt !== e.createdAt ? '<br>Last edited: '+new Date(e.updatedAt).toLocaleString() : ''}
     </div>
     <div class="modal-actions">
-      <button class="sbtn" onclick="editEntry('${e.id}')">✏️ Edit</button>
-      <button class="dbtn" onclick="deleteEntry('${e.id}')">🗑️ Delete</button>
+      <button class="sbtn" onclick="editEntry('${e.id}')">\u270F\uFE0F Edit</button>
+      <button class="dbtn" onclick="deleteEntry('${e.id}')">\u{1F5D1}\uFE0F Delete</button>
     </div>
   </div></div>`;
 }
@@ -1052,9 +1225,10 @@ function editEntry(id) {
 }
 
 function deleteEntry(id) {
-  if (!confirm('Delete this entry permanently?')) return;
-  S.entries=S.entries.filter(e=>e.id!==id);
-  LS.save(S.entries); S.viewing=null; toast('Entry deleted'); render();
+  showConfirm('Delete Entry?', 'This will permanently delete this entry and all its attachments. This cannot be undone.', () => {
+    S.entries=S.entries.filter(e=>e.id!==id);
+    LS.save(S.entries); S.viewing=null; toast('Entry deleted'); render();
+  }, 'Delete');
 }
 
 function lockApp() {
@@ -1072,6 +1246,9 @@ function exportTabHTML() {
   const quota = _storageQuota || 500*1024*1024;
   const pct = Math.min(100, Math.round(used/quota*100));
   const quotaLabel = _storageQuota ? fmtBytes(_storageQuota) : 'large';
+  const lastBackupStr = _lastBackup ? timeSince(new Date(_lastBackup)) + ' ago' : 'Never';
+  const lastBackupWarn = !_lastBackup || (Date.now() - new Date(_lastBackup).getTime()) > 7*86400000;
+
   return `
     <div class="stats">
       <div class="stat"><div class="num">${S.entries.length}</div><div class="lbl">Total</div></div>
@@ -1082,25 +1259,30 @@ function exportTabHTML() {
       <div class="stat">
         <div class="num" style="font-size:18px">${fmtBytes(used)}</div>
         <div class="lbl">used</div>
-        <div class="stor-bar"><div class="stor-fill" style="width:${pct}%"></div></div>
+        <div class="stor-bar"><div class="stor-fill" style="width:${pct}%;${pct>80?'background:var(--yw)':''}${pct>95?'background:var(--rd)':''}"></div></div>
         <div class="lbl" style="margin-top:2px;font-size:10px">${quotaLabel} available</div>
       </div>
     </div>
-    <div class="grp-label">📤 Export Options</div>
-    <div class="xcard" onclick="exportReport()"><div class="xi">📄</div><div><h3>Attorney-Ready Report</h3><p>Positive moments + incidents — print or save as PDF</p></div></div>
-    <div class="xcard" onclick="exportMediaZip()"><div class="xi">📦</div><div><h3>Media Bundle (ZIP)</h3><p>All photos, videos & files — cross-referenced to report by Entry ID</p></div></div>
-    <div class="xcard" onclick="exportCSV()"><div class="xi">📊</div><div><h3>Spreadsheet (CSV)</h3><p>For Excel or Google Sheets</p></div></div>
-    <div class="xcard" onclick="exportJSON()"><div class="xi">💾</div><div><h3>Full Backup (JSON)</h3><p>Complete data backup with attachments</p></div></div>
-    <div class="xcard" onclick="importJSON()"><div class="xi">📥</div><div><h3>Restore from Backup</h3><p>Import a previous backup file</p></div></div>
-    <div class="disclaimer"><strong>⚠️ Important:</strong> Data is stored locally on your device only. No data is sent to any server. <strong>Always export backups regularly.</strong> Clearing browser data will delete all entries. This app is not legal advice — consult your attorney.</div>`;
+    ${lastBackupWarn && S.entries.length > 0 ? `<div class="note note-warn" style="margin-bottom:14px"><span class="ni">\u26A0\uFE0F</span><span>Last backup: <strong>${lastBackupStr}</strong>. Export a backup to protect your data.</span></div>` : ''}
+    ${!lastBackupWarn ? `<div class="note note-gn" style="margin-bottom:14px"><span class="ni">\u2705</span><span>Last backup: ${lastBackupStr}</span></div>` : ''}
+    <div class="grp-label">\u{1F4E4} Export Options</div>
+    <div class="xcard" onclick="exportReport()"><div class="xi">\u{1F4C4}</div><div><h3>Attorney-Ready Report</h3><p>Positive moments + incidents \u2014 print or save as PDF</p></div></div>
+    <div class="xcard" onclick="exportMediaZip()"><div class="xi">\u{1F4E6}</div><div><h3>Media Bundle (ZIP)</h3><p>All photos, videos & files \u2014 cross-referenced to report by Entry ID</p></div></div>
+    <div class="xcard" onclick="exportCSV()"><div class="xi">\u{1F4CA}</div><div><h3>Spreadsheet (CSV)</h3><p>For Excel or Google Sheets</p></div></div>
+    <div class="xcard" onclick="exportJSON()"><div class="xi">\u{1F4BE}</div><div><h3>Full Backup (JSON)</h3><p>Complete data backup with attachments</p></div></div>
+    <div class="xcard" onclick="importJSON()"><div class="xi">\u{1F4E5}</div><div><h3>Restore from Backup</h3><p>Import a previous backup file</p></div></div>
+    <div class="grp-label">\u2699\uFE0F Settings</div>
+    <div class="xcard" onclick="lockApp()"><div class="xi">\u{1F512}</div><div><h3>${LS.pin() ? 'Change PIN' : 'Set PIN Lock'}</h3><p>${LS.pin() ? 'Lock the app or change your PIN' : 'Protect your entries with a 4-digit PIN'}</p></div></div>
+    <div class="xcard" onclick="resetAll()" style="border-color:var(--rdb)"><div class="xi">\u{1F5D1}\uFE0F</div><div><h3 style="color:var(--rd)">Reset App</h3><p>Delete all data and start fresh</p></div></div>
+    <div class="disclaimer"><strong>\u26A0\uFE0F Important:</strong> Data is stored locally on your device only. No data is sent to any server. <strong>Always export backups regularly.</strong> Clearing browser data will delete all entries. This app is not legal advice \u2014 consult your attorney.</div>`;
 }
 
 function exportReport() {
-  if (!S.entries.length) { toast('No entries'); return; }
+  if (!S.entries.length) { toast('No entries to export'); return; }
   const positives = [...S.entries].filter(e=>isPositive(e)).sort((a,b)=>new Date(a.date+'T'+a.time)-new Date(b.date+'T'+b.time));
   const incidents = [...S.entries].filter(e=>!isPositive(e)).sort((a,b)=>new Date(a.date+'T'+a.time)-new Date(b.date+'T'+b.time));
   const now = new Date().toLocaleString();
-  let h = `<!DOCTYPE html><html><head><meta charset="UTF-8"><title>Custody Documentation — ${USER_NAME} — ${now}</title>
+  let h = `<!DOCTYPE html><html><head><meta charset="UTF-8"><title>Custody Documentation \u2014 ${now}</title>
 <style>
 @import url('https://fonts.googleapis.com/css2?family=Source+Sans+3:wght@400;600;700&display=swap');
 *{margin:0;padding:0;box-sizing:border-box}
@@ -1134,9 +1316,9 @@ h1{font-size:22px;margin-bottom:4px}
 .footer{margin-top:32px;padding-top:16px;border-top:1px solid #dee2e6;font-size:11px;color:#999;text-align:center}
 .pbtn{position:fixed;bottom:30px;right:30px;background:#0d6efd;color:#fff;border:none;padding:14px 28px;border-radius:8px;font-size:15px;font-weight:600;cursor:pointer;box-shadow:0 4px 12px rgba(0,0,0,.3)}
 </style></head><body>
-<h1>📋 Custody Documentation Log</h1>
-<div class="sub">Prepared for: ${USER_NAME} | Generated: ${now} | ${positives.length} positive moments, ${incidents.length} incidents</div>
-<div class="conf">⚠️ PRIVILEGED & CONFIDENTIAL — Prepared for attorney review.</div>
+<h1>\u{1F4CB} Custody Documentation Log</h1>
+<div class="sub">Generated: ${now} | ${positives.length} positive moments, ${incidents.length} incidents</div>
+<div class="conf">\u26A0\uFE0F PRIVILEGED & CONFIDENTIAL \u2014 Prepared for attorney review.</div>
 <div class="summary"><h2>Summary</h2><div class="sg">
 <div class="si"><div class="n">${S.entries.length}</div><div class="l">Total Entries</div></div>
 <div class="si"><div class="n" style="color:#28a745">${positives.length}</div><div class="l">Positive Moments</div></div>
@@ -1146,21 +1328,20 @@ h1{font-size:22px;margin-bottom:4px}
 <div class="si"><div class="n">${S.entries.filter(e=>e.media&&e.media.length).length}</div><div class="l">W/ Attachments</div></div>
 </div></div>`;
 
-  // Positive section first
   if (positives.length) {
-    h += `<h2 class="section-header sh-pos">💚 Positive Parenting & Co-Parenting (${positives.length})</h2>`;
+    h += `<h2 class="section-header sh-pos">\u{1F49A} Positive Parenting & Co-Parenting (${positives.length})</h2>`;
     h += renderReportEntries(positives, true);
   }
 
-  // Incidents section
   if (incidents.length) {
-    h += `<h2 class="section-header sh-inc">📋 Documented Incidents (${incidents.length})</h2>`;
+    h += `<h2 class="section-header sh-inc">\u{1F4CB} Documented Incidents (${incidents.length})</h2>`;
     h += renderReportEntries(incidents, false);
   }
 
-  h += `<div class="footer"><p>Generated by Custody Log for ${USER_NAME} | ${now}</p><p>Entries recorded by user at times indicated. Each entry shows both the event date and the date it was logged.</p></div>
-  <button class="pbtn no-print" onclick="window.print()">🖨️ Print / Save as PDF</button></body></html>`;
-  downloadBlob(h,'text/html',`CustodyLog_${USER_NAME}_Report_${new Date().toISOString().slice(0,10)}.html`);
+  h += `<div class="footer"><p>Generated by CustodyLog | ${now}</p><p>Entries recorded by user at times indicated. Each entry shows both the event date and the date it was logged.</p></div>
+  <button class="pbtn no-print" onclick="window.print()">\u{1F5A8}\uFE0F Print / Save as PDF</button></body></html>`;
+  downloadBlob(h,'text/html',`CustodyLog_Report_${new Date().toISOString().slice(0,10)}.html`);
+  LS.setLastBackup();
   toast('Report downloaded');
 }
 
@@ -1178,15 +1359,15 @@ function renderReportEntries(entries, isPos) {
       const datesMatch = e.createdAt && e.date === e.createdAt.slice(0,10);
       h += `<div class="entry${isPos?' entry-pos':''}">
         <div class="eh"><div class="ec">${c?c.icon+' '+c.label:e.category}</div><span class="es s-${isPos?'positive':e.severity}">${isPos?'Positive':e.severity}</span></div>
-        <div class="ed">📅 ${fmtDate(e.date)} at ${fmtTime(e.time)}</div>
+        <div class="ed">\u{1F4C5} ${fmtDate(e.date)} at ${fmtTime(e.time)}</div>
         <div class="edesc">${escH(e.description)}</div>
         <div class="edet">
-          ${e.location?`<span>📍 ${escH(e.location)}</span>`:''}
-          ${e.witnesses && !isPos?`<span>👁️ ${escH(e.witnesses)}</span>`:''}
-          ${e.kidsThere?`<span${isPos?'':' class="cf"'}>${isPos?'👨‍👧‍👦':'⚠️'} Children${e.kidsNames?' — '+escH(e.kidsNames):''}</span>`:''}
+          ${e.location?`<span>\u{1F4CD} ${escH(e.location)}</span>`:''}
+          ${e.witnesses && !isPos?`<span>\u{1F441}\uFE0F ${escH(e.witnesses)}</span>`:''}
+          ${e.kidsThere?`<span${isPos?'':' class="cf"'}>${isPos?'\u{1F468}\u200D\u{1F467}\u200D\u{1F466}':'\u26A0\uFE0F'} Children${e.kidsNames?' \u2014 '+escH(e.kidsNames):''}</span>`:''}
         </div>
         ${e.media&&e.media.length?`<div class="att">${e.media.filter(m=>m.type.startsWith('image/')).map(m=>`<img src="${m.data}">`).join('')}
-          ${e.media.filter(m=>!m.type.startsWith('image/')).length?`<div style="margin-top:6px">${e.media.filter(m=>!m.type.startsWith('image/')).map(m=>`<div style="display:inline-block;padding:6px 10px;background:#e9ecef;border-radius:4px;font-size:12px;margin:4px 4px 0 0;">📎 ${escH(m.name)} <span style="color:#6c757d;font-style:italic">— file available in Media Bundle export (Entry ${e.id})</span></div>`).join('')}</div>`:''}
+          ${e.media.filter(m=>!m.type.startsWith('image/')).length?`<div style="margin-top:6px">${e.media.filter(m=>!m.type.startsWith('image/')).map(m=>`<div style="display:inline-block;padding:6px 10px;background:#e9ecef;border-radius:4px;font-size:12px;margin:4px 4px 0 0;">\u{1F4CE} ${escH(m.name)} <span style="color:#6c757d;font-style:italic">\u2014 file available in Media Bundle export (Entry ${e.id})</span></div>`).join('')}</div>`:''}
         </div>`:''}
         <div class="eid">ID: ${e.id} | Logged: ${createdDate}${!datesMatch?' (backdated entry)':''}</div>
       </div>`;
@@ -1196,22 +1377,34 @@ function renderReportEntries(entries, isPos) {
 }
 
 function exportCSV() {
-  if (!S.entries.length) { toast('No entries'); return; }
+  if (!S.entries.length) { toast('No entries to export'); return; }
   const sorted = [...S.entries].sort((a,b)=>new Date(a.date+'T'+a.time)-new Date(b.date+'T'+b.time));
   const hdr = ['Type','Date','Time','Category','Severity','Description','Location','Witnesses','Children Present','Children Names','Attachments','Entry ID','Created','Updated'];
-  const rows = sorted.map(e => [isPositive(e)?'Positive':'Incident',e.date,e.time,catLabel(e.category,e.type),isPositive(e)?'Positive':e.severity,
-    '"'+(e.description||'').replace(/"/g,'""')+'"',
+  const rows = sorted.map(e => [
+    isPositive(e)?'Positive':'Incident',
+    e.date,
+    e.time,
+    '"'+(catLabel(e.category,e.type)||'').replace(/"/g,'""')+'"',
+    isPositive(e)?'Positive':e.severity,
+    '"'+(e.description||'').replace(/"/g,'""').replace(/\r?\n/g,' ')+'"',
     '"'+(e.location||'').replace(/"/g,'""')+'"',
     '"'+(e.witnesses||'').replace(/"/g,'""')+'"',
-    e.kidsThere?'Yes':'No','"'+(e.kidsNames||'').replace(/"/g,'""')+'"',
-    (e.media||[]).length, e.id, e.createdAt, e.updatedAt||'']);
-  downloadBlob([hdr.join(','),...rows.map(r=>r.join(','))].join('\n'),'text/csv',`CustodyLog_${USER_NAME}_${new Date().toISOString().slice(0,10)}.csv`);
+    e.kidsThere?'Yes':'No',
+    '"'+(e.kidsNames||'').replace(/"/g,'""')+'"',
+    (e.media||[]).length,
+    e.id,
+    e.createdAt,
+    e.updatedAt||''
+  ]);
+  downloadBlob('\uFEFF'+[hdr.join(','),...rows.map(r=>r.join(','))].join('\n'),'text/csv;charset=utf-8',`CustodyLog_Export_${new Date().toISOString().slice(0,10)}.csv`);
+  LS.setLastBackup();
   toast('CSV downloaded');
 }
 
 function exportJSON() {
-  if (!S.entries.length) { toast('No entries'); return; }
-  downloadBlob(JSON.stringify({v:3,user:USER_NAME,date:new Date().toISOString(),entries:S.entries},null,2),'application/json',`CustodyLog_${USER_NAME}_Backup_${new Date().toISOString().slice(0,10)}.json`);
+  if (!S.entries.length) { toast('No entries to export'); return; }
+  downloadBlob(JSON.stringify({v:3,app:'CustodyLog',date:new Date().toISOString(),entries:S.entries},null,2),'application/json',`CustodyLog_Backup_${new Date().toISOString().slice(0,10)}.json`);
+  LS.setLastBackup();
   toast('Backup downloaded');
 }
 
@@ -1223,7 +1416,6 @@ function exportMediaZip() {
     const type = isPositive(e) ? 'Positive' : 'Incident';
     const folder = `${e.date}_${type}_${e.id}`;
     e.media.forEach((m, i) => {
-      const ext = m.name.split('.').pop() || 'bin';
       const fname = `${folder}/${(i+1).toString().padStart(2,'0')}_${m.name}`;
       const b64 = m.data.split(',')[1];
       if (!b64) return;
@@ -1234,8 +1426,7 @@ function exportMediaZip() {
     });
   });
   if (!files.length) { toast('No media files to export', true); return; }
-  // Build index
-  let idx = `MEDIA BUNDLE INDEX\n${'='.repeat(50)}\nGenerated: ${new Date().toLocaleString()}\nUser: ${USER_NAME}\nTotal files: ${files.length}\n\n`;
+  let idx = `MEDIA BUNDLE INDEX\n${'='.repeat(50)}\nGenerated: ${new Date().toLocaleString()}\nTotal files: ${files.length}\n\n`;
   sorted.forEach(e => {
     if (!e.media || !e.media.length) return;
     const type = isPositive(e) ? 'Positive' : 'Incident';
@@ -1249,9 +1440,9 @@ function exportMediaZip() {
   });
   const idxBytes = new TextEncoder().encode(idx);
   files.unshift({ name: '_INDEX.txt', data: idxBytes });
-  // Build zip
   const zip = buildZip(files);
-  downloadBlob(zip, 'application/zip', `CustodyLog_${USER_NAME}_Media_${new Date().toISOString().slice(0,10)}.zip`);
+  downloadBlob(zip, 'application/zip', `CustodyLog_Media_${new Date().toISOString().slice(0,10)}.zip`);
+  LS.setLastBackup();
   toast(`Media bundle: ${files.length - 1} files`);
 }
 
@@ -1262,31 +1453,29 @@ function buildZip(files) {
   files.forEach(f => {
     const nameBytes = new TextEncoder().encode(f.name);
     const crc = crc32(f.data);
-    // Local file header
     const lh = new Uint8Array(30 + nameBytes.length);
     const lv = new DataView(lh.buffer);
-    lv.setUint32(0, 0x04034b50, true); // sig
-    lv.setUint16(4, 20, true); // version needed
-    lv.setUint16(6, 0, true); // flags
-    lv.setUint16(8, 0, true); // compression (STORED)
-    lv.setUint16(10, 0, true); // mod time
-    lv.setUint16(12, 0, true); // mod date
+    lv.setUint32(0, 0x04034b50, true);
+    lv.setUint16(4, 20, true);
+    lv.setUint16(6, 0, true);
+    lv.setUint16(8, 0, true);
+    lv.setUint16(10, 0, true);
+    lv.setUint16(12, 0, true);
     lv.setUint32(14, crc, true);
-    lv.setUint32(18, f.data.length, true); // compressed
-    lv.setUint32(22, f.data.length, true); // uncompressed
+    lv.setUint32(18, f.data.length, true);
+    lv.setUint32(22, f.data.length, true);
     lv.setUint16(26, nameBytes.length, true);
-    lv.setUint16(28, 0, true); // extra length
+    lv.setUint16(28, 0, true);
     lh.set(nameBytes, 30);
     localHeaders.push({ header: lh, data: f.data, offset, nameBytes, crc, size: f.data.length });
     offset += lh.length + f.data.length;
-    // Central directory header
     const ch = new Uint8Array(46 + nameBytes.length);
     const cv = new DataView(ch.buffer);
     cv.setUint32(0, 0x02014b50, true);
-    cv.setUint16(4, 20, true); // version made by
-    cv.setUint16(6, 20, true); // version needed
+    cv.setUint16(4, 20, true);
+    cv.setUint16(6, 20, true);
     cv.setUint16(8, 0, true);
-    cv.setUint16(10, 0, true); // compression
+    cv.setUint16(10, 0, true);
     cv.setUint16(12, 0, true);
     cv.setUint16(14, 0, true);
     cv.setUint32(16, crc, true);
@@ -1343,19 +1532,28 @@ function importJSON() {
       try {
         const d = JSON.parse(e.target.result);
         if (d.entries && Array.isArray(d.entries)) {
-          const ids = new Set(S.entries.map(x=>x.id));
-          let added = 0;
-          d.entries.forEach(entry => {
-            if (!ids.has(entry.id)) {
-              // Ensure type field exists for backward compat
-              if (!entry.type) entry.type = 'incident';
-              S.entries.push(entry); added++;
-            }
-          });
-          LS.save(S.entries); toast(`Imported ${added} entries`); render();
-        } else toast('Invalid file', true);
-      } catch { toast('Could not read file', true); }
+          const newCount = d.entries.filter(entry => !S.entries.some(x => x.id === entry.id)).length;
+          const totalCount = d.entries.length;
+          showConfirm(
+            'Import Backup?',
+            `This file contains ${totalCount} entries. ${newCount} new entries will be added (${totalCount - newCount} duplicates will be skipped).`,
+            () => {
+              let added = 0;
+              const ids = new Set(S.entries.map(x=>x.id));
+              d.entries.forEach(entry => {
+                if (!ids.has(entry.id)) {
+                  if (!entry.type) entry.type = 'incident';
+                  S.entries.push(entry); added++;
+                }
+              });
+              LS.save(S.entries); toast(`Imported ${added} entries`); render();
+            },
+            null
+          );
+        } else toast('Invalid backup file', true);
+      } catch { toast('Could not read file \u2014 is it a valid JSON backup?', true); }
     };
+    r.onerror = () => toast('Could not read file', true);
     r.readAsText(f);
   };
   el.click();
@@ -1363,14 +1561,28 @@ function importJSON() {
 
 // Helpers
 function genId() { return Date.now().toString(36)+Math.random().toString(36).slice(2,7); }
-function truncate(s,n) { return s.length>n ? s.slice(0,n)+'…' : s; }
+function truncate(s,n) { return s.length>n ? s.slice(0,n)+'\u2026' : s; }
 function esc(s) { return (s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;'); }
 function escH(s) { const d=document.createElement('div');d.textContent=s;return d.innerHTML; }
 function nowDT() { const d=new Date(); return {date:d.toISOString().split('T')[0],time:d.toTimeString().slice(0,5)}; }
 function fmtDate(d) { try{return new Date(d+'T00:00:00').toLocaleDateString('en-US',{weekday:'short',month:'short',day:'numeric',year:'numeric'});}catch{return d;} }
 function fmtTime(t) { try{const[h,m]=t.split(':');const hr=parseInt(h);return`${hr>12?hr-12:hr||12}:${m} ${hr>=12?'PM':'AM'}`;}catch{return t;} }
 function downloadBlob(c,t,f) { const b=new Blob([c],{type:t}),u=URL.createObjectURL(b),a=document.createElement('a');a.href=u;a.download=f;a.click();URL.revokeObjectURL(u); }
-function toast(m,warn) { const t=document.getElementById('toast');t.textContent=m;t.className='toast show'+(warn?' warn':'');setTimeout(()=>t.className='toast',2500); }
+function timeSince(date) {
+  const s = Math.floor((Date.now() - date.getTime()) / 1000);
+  if (s < 60) return 'just now';
+  if (s < 3600) return Math.floor(s/60) + 'm';
+  if (s < 86400) return Math.floor(s/3600) + 'h';
+  return Math.floor(s/86400) + 'd';
+}
+
+function toast(m, warn) {
+  if (_toastTimer) clearTimeout(_toastTimer);
+  const t = document.getElementById('toast');
+  t.textContent = m;
+  t.className = 'toast show' + (warn ? ' warn' : '');
+  _toastTimer = setTimeout(() => { t.className = 'toast'; _toastTimer = null; }, 3000);
+}
 
 // Boot
 boot();

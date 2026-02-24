@@ -1,6 +1,6 @@
 {
-  "name": "Zev's Custody Log",
-  "short_name": "Custody Log",
+  "name": "CustodyLog",
+  "short_name": "CustodyLog",
   "description": "Private custody documentation — incidents and positive moments",
   "start_url": "./index.html",
   "display": "standalone",
